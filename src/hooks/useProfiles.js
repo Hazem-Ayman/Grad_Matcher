@@ -86,10 +86,23 @@ export function useProfiles(currentProfile) {
     });
   }, [fetchMoreProfiles, hasMore, loading]);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     if (currentProfile) {
-      setProfiles([]);
-      setHasMore(true);
+      setLoading(true);
+      try {
+        // Delete swipes with 'left' direction for current swiper to reset them in the feed
+        await supabase
+          .from('swipes')
+          .delete()
+          .eq('swiper_id', currentProfile.id)
+          .eq('direction', 'left');
+      } catch (err) {
+        console.error("Error clearing left swipes during refresh:", err);
+      } finally {
+        setProfiles([]);
+        setHasMore(true);
+        setLoading(false);
+      }
       return fetchMoreProfiles([]);
     }
   }, [currentProfile, fetchMoreProfiles]);
