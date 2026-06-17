@@ -1,16 +1,59 @@
-# React + Vite
+# GradMatch ⚡
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Tinder-style web application for university students to find graduation project teammates.
 
-Currently, two official plugins are available:
+## 🚀 Tech Stack
+- **Frontend**: React + Vite + Tailwind CSS v4
+- **Backend & DB**: Supabase (Auth, PostgreSQL Database, Realtime, Storage)
+- **Icons**: Lucide React
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🛠️ Supabase Database Schema
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+To set up the database, execute the SQL queries from `gradmatch-spec.md` in the Supabase SQL editor. This creates the following tables:
+- `profiles`: User information, onboarding flags, roles, skills, and contact handles.
+- `swipes`: Records of left/right student swiping interactions.
+- `matches`: Mutual connections establishing a team link.
+- `messages`: Real-time chat messages between teammates.
+- `notifications`: Notifications for likes, new matches, and contact reveals.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## ⚙️ Project Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Hazem-Ayman/Grad_Matcher.git
+   cd Grad_Matcher
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory and add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Storage Buckets Setup**:
+   Create a **public bucket** named `avatars` in your Supabase storage to store profile images.
+
+5. **Start Local Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 📱 Features Walkthrough
+1. **Landing Page**: Public dashboard showing CTAs and product value propositions.
+2. **Onboarding Wizard**: 5-step form onboarding containing basic information, role tags, project description, privacy modes, and avatar uploads.
+3. **Swipe Feed**: Stacked cards deck with pointer-swipe drag and arrow-keys controls, overlays, and direct open contact modals.
+4. **Mutual Matches**: Teammates list displaying contact triggers and redirection to chat room.
+5. **Real-time Chat**: Messaging thread utilizing Supabase Realtime subscriptions.
+6. **Activity Notifications**: Inbox notifying of likes, new matches, and reveals.
