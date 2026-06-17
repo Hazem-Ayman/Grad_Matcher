@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #4F46E5; /* indigo-650 */
+  --color-brand-success: #22C55E; /* green-500 */
+  --color-brand-reject: #EF4444;  /* red-500 */
+  --color-brand-bg: #030712;      /* gray-950 */
+  --color-brand-card: #111827;    /* gray-900 */
+  --color-brand-surface: #1F2937; /* gray-800 */
+  --color-brand-border: #374151;  /* gray-700 */
+}
+
+@utility glass-panel {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(55, 65, 81, 0.4);
+}
+
+@utility glass-panel-light {
+  background: rgba(31, 41, 55, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+@utility swipe-card-transition {
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+}
+
+@utility tap-feedback {
+  &:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+}
+
+body {
+  @apply bg-brand-bg text-white antialiased selection:bg-indigo-500/30 selection:text-indigo-200 overflow-x-hidden min-h-screen;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #030712;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
