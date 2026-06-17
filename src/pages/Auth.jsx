@@ -28,6 +28,9 @@ export default function Auth() {
         } else {
           navigate('/onboarding', { replace: true });
         }
+      } else {
+        // If user is authenticated but profile row does not exist yet
+        navigate('/onboarding', { replace: true });
       }
     }
   }, [user, profile, sessionLoading, navigate]);

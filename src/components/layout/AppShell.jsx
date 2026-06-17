@@ -26,7 +26,7 @@ export default function AppShell() {
 
   // Redirect to onboarding if not complete
   const isOnboardingPage = location.pathname === '/onboarding';
-  if (profile && !profile.onboarding_complete && !isOnboardingPage) {
+  if ((!profile || !profile.onboarding_complete) && !isOnboardingPage) {
     return <Navigate to="/onboarding" replace />;
   }
 
