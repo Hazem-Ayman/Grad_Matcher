@@ -63,9 +63,14 @@ export default function Auth() {
         if (error) throw error;
 
         if (data?.user) {
-          toast.success("Account created! Check your email for confirmation.");
-          // Wait briefly, then try to fetch profile or navigate to onboarding
-          navigate('/onboarding');
+          if (!data.session) {
+            toast.success("Account created! Check your email to confirm your account.", { duration: 6000 });
+            setMode('login');
+            setPassword(''); // Clear password for security
+          } else {
+            toast.success("Welcome! Redirecting...");
+            navigate('/onboarding');
+          }
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
