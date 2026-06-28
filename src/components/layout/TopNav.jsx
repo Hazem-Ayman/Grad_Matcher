@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Flame, Heart, Bell, User, LogOut } from 'lucide-react';
+import { Flame, Heart, Bell, User, LogOut, Users } from 'lucide-react';
 
 export default function TopNav({ unreadNotificationsCount, onSignOut }) {
   return (
@@ -61,6 +61,20 @@ export default function TopNav({ unreadNotificationsCount, onSignOut }) {
             {unreadNotificationsCount > 0 && (
               <span className="absolute top-1.5 right-2 flex h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
             )}
+          </NavLink>
+
+          <NavLink
+            to="/team"
+            className={({ isActive }) =>
+              `flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-indigo-600/10 text-indigo-400'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-900/50'
+              }`
+            }
+          >
+            <Users className="w-4 h-4" />
+            <span>Team</span>
           </NavLink>
 
           <NavLink

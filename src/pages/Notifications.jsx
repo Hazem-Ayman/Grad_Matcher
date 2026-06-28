@@ -55,13 +55,84 @@ export default function Notifications() {
         setMatchedProfile(targetProfile);
         setMatchId(result.match.id);
         setIsMatchOpen(true);
-        toast.success(`You matched with ${targetProfile.name}! 🎉`, { duration: 4000 });
+        toast.success(`You matched with ${targetProfile.name}! 🎉`, { duration: 2000 });
       } else {
         toast.success(`Liked ${targetProfile.name}!`);
       }
     } catch (err) {
       console.error("Error liking user back:", err);
       toast.error("Operation failed.");
+    }
+  };
+
+  const handleAcceptInvite = async (notif) => {
+    if (!currentProfile || !notif?.team_invite) return;
+
+    try {
+      const { data: teamMembers, error: membersErr } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('team_id', currentProfile.team_id);
+
+      if (membersErr) throw membersErr;
+
+      if (teamMembers && teamMembers.length > 1) {
+        toast.error("You cannot accept this invite because you are currently in a team with other members.");
+        return;
+      }
+
+      const oldTeamId = currentProfile.team_id;
+      const newTeamId = notif.team_invite.team.id;
+
+      const { error: updateProfileErr } = await supabase
+        .from('profiles')
+        .update({ team_id: newTeamId })
+        .eq('id', currentProfile.id);
+
+      if (updateProfileErr) throw updateProfileErr;
+
+      if (oldTeamId) {
+        await supabase
+          .from('teams')
+          .delete()
+          .eq('id', oldTeamId);
+      }
+
+      await supabase
+        .from('team_invites')
+        .update({ status: 'accepted' })
+        .eq('id', notif.team_invite.id);
+
+      if (!notif.read) {
+        await markAsRead(notif.id);
+      }
+
+      toast.success("Joined their project team! 🎉");
+      window.location.reload();
+    } catch (err) {
+      console.error("Error accepting team invite in Notifications:", err);
+      toast.error("Failed to join team.");
+    }
+  };
+
+  const handleDeclineInvite = async (notif) => {
+    if (!notif?.team_invite) return;
+
+    try {
+      await supabase
+        .from('team_invites')
+        .update({ status: 'declined' })
+        .eq('id', notif.team_invite.id);
+
+      if (!notif.read) {
+        await markAsRead(notif.id);
+      }
+
+      toast.success("Team invitation declined.");
+      window.location.reload();
+    } catch (err) {
+      console.error("Error declining team invite in Notifications:", err);
+      toast.error("Failed to decline invitation.");
     }
   };
 
@@ -108,6 +179,8 @@ export default function Notifications() {
               key={notif.id}
               notification={notif}
               onClick={handleNotificationClick}
+              onAcceptInvite={handleAcceptInvite}
+              onDeclineInvite={handleDeclineInvite}
             />
           ))}
         </div>

@@ -15,7 +15,6 @@ To set up the database, execute the SQL queries from `gradmatch-spec.md` in the 
 - `profiles`: User information, onboarding flags, roles, skills, and contact handles.
 - `swipes`: Records of left/right student swiping interactions.
 - `matches`: Mutual connections establishing a team link.
-- `messages`: Real-time chat messages between teammates.
 - `notifications`: Notifications for likes, new matches, and contact reveals.
 
 ---
@@ -54,6 +53,5 @@ To set up the database, execute the SQL queries from `gradmatch-spec.md` in the 
 1. **Landing Page**: Public dashboard showing CTAs and product value propositions.
 2. **Onboarding Wizard**: 5-step form onboarding containing basic information, role tags, project description, privacy modes, and avatar uploads.
 3. **Swipe Feed**: Stacked cards deck with pointer-swipe drag and arrow-keys controls, overlays, and direct open contact modals.
-4. **Mutual Matches**: Teammates list displaying contact triggers and redirection to chat room.
-5. **Real-time Chat**: Messaging thread utilizing Supabase Realtime subscriptions.
-6. **Activity Notifications**: Inbox notifying of likes, new matches, and reveals.
+4. **Mutual Matches**: Teammates list displaying contact triggers.
+5. **Activity Notifications**: Inbox notifying of likes, new matches, and reveals.

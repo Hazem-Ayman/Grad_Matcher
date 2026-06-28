@@ -51,6 +51,7 @@ create table profiles (
   skills text[] default '{}', -- ["React", "Python", "ML"]
   github_url text,
   project_idea text, -- one-liner of what they want to build
+  searching_for text, -- details of what they search for in teammates
   looking_for text not null default 'match', -- "full_team" | "one_member" | "browsing"
   contact_mode text not null default 'match', -- "open" | "match"
   phone text,
@@ -82,15 +83,6 @@ create table matches (
   unique(user1_id, user2_id)
 );
 
--- MESSAGES
-create table messages (
-  id uuid primary key default gen_random_uuid(),
-  match_id uuid references matches(id) on delete cascade not null,
-  sender_id uuid references profiles(id) on delete cascade not null,
-  content text not null,
-  created_at timestamptz default now()
-);
-
 -- NOTIFICATIONS
 create table notifications (
   id uuid primary key default gen_random_uuid(),
@@ -105,7 +97,6 @@ create table notifications (
 alter table profiles enable row level security;
 alter table swipes enable row level security;
 alter table matches enable row level security;
-alter table messages enable row level security;
 alter table notifications enable row level security;
 
 -- Profiles: anyone can read, only owner can write
@@ -125,25 +116,12 @@ create policy "Match participants can see matches" on matches for select using (
 );
 create policy "Match insert allowed" on matches for insert with check (true);
 
--- Messages: only match participants
-create policy "Match participants can see messages" on messages for select using (
-  match_id in (
-    select id from matches where
-      user1_id = (select id from profiles where user_id = auth.uid()) or
-      user2_id = (select id from profiles where user_id = auth.uid())
-  )
-);
-create policy "Match participants can send messages" on messages for insert with check (
-  sender_id = (select id from profiles where user_id = auth.uid())
-);
-
 -- Notifications: only the recipient
 create policy "Users see own notifications" on notifications for all using (
   user_id = (select id from profiles where user_id = auth.uid())
 );
 
--- Enable Realtime on messages and notifications
-alter publication supabase_realtime add table messages;
+-- Enable Realtime on notifications
 alter publication supabase_realtime add table notifications;
 ```
 
@@ -160,15 +138,13 @@ src/
 │   ├── useAuth.js             -- current user + profile
 │   ├── useProfiles.js         -- fetch swipe feed
 │   ├── useMatches.js          -- fetch matches list
-│   ├── useNotifications.js    -- fetch + subscribe to notifications
-│   └── useMessages.js         -- fetch + subscribe to chat messages
+│   └── useNotifications.js    -- fetch + subscribe to notifications
 ├── pages/
 │   ├── Landing.jsx            -- public landing page
 │   ├── Auth.jsx               -- login / signup page
 │   ├── Onboarding.jsx         -- profile setup wizard (multi-step)
 │   ├── Swipe.jsx              -- main swipe feed
 │   ├── Matches.jsx            -- list of matches
-│   ├── Chat.jsx               -- chat view for a single match
 │   ├── Notifications.jsx      -- notification inbox
 │   └── Profile.jsx            -- view/edit own profile
 ├── components/
@@ -185,9 +161,6 @@ src/
 │   ├── matches/
 │   │   ├── MatchCard.jsx      -- match list item
 │   │   └── MatchModal.jsx     -- "It's a Match!" celebration modal
-│   ├── chat/
-│   │   ├── MessageBubble.jsx
-│   │   └── ChatInput.jsx
 │   ├── notifications/
 │   │   └── NotificationItem.jsx
 │   └── ui/
@@ -361,27 +334,6 @@ List of all mutual matches.
 - Avatar + Name + Role
 - Skills (first 3 chips)
 - "View Contact Info" button → opens modal with their phone/social handles
-- "Message" button → goes to `/chat/:matchId`
-
----
-
-### 6. Chat Page (`/chat/:matchId`)
-
-Simple real-time chat between two matched users.
-
-**Layout:**
-- Mobile: full screen, message input pinned to bottom above keyboard
-- Desktop: centered, max-width 600px
-
-**Features:**
-- Message bubbles: own messages right-aligned (accent color), theirs left-aligned (gray)
-- Timestamp shown under each message (HH:MM format)
-- Input: text field + send button
-- Real-time: subscribe to Supabase Realtime on `messages` table filtered by `match_id`
-- On mount: scroll to bottom of messages
-- On new message received: auto-scroll to bottom
-
-**NO:** typing indicators, read receipts, image/file uploads — text only.
 
 ---
 
@@ -616,7 +568,6 @@ Do not implement:
 /onboarding         → Profile setup wizard (protected, only if !onboarding_complete)
 /swipe              → Main swipe feed (protected)
 /matches            → Matches list (protected)
-/chat/:matchId      → Chat view (protected)
 /notifications      → Notification inbox (protected)
 /profile            → Own profile view/edit (protected)
 ```
@@ -637,7 +588,7 @@ All protected routes: if not logged in → redirect to `/auth`. If logged in but
 
 ## Final Checklist Before Launch
 
-- [ ] Test full flow: signup → onboarding → swipe → match → chat
+- [ ] Test full flow: signup → onboarding → swipe → match
 - [ ] Test contact_mode = "open" flow: right swipe → contact shown immediately
 - [ ] Test contact_mode = "match" flow: mutual swipe → match modal → contact shown
 - [ ] Test notification badge updates in real time
@@ -650,3 +601,58 @@ All protected routes: if not logged in → redirect to `/auth`. If logged in but
 - [ ] Add meta tags for mobile: `<meta name="viewport" content="width=device-width, initial-scale=1">`
 - [ ] Add PWA manifest so users can "Add to Home Screen" on mobile
 - [ ] Set Vercel domain, share invite link with friends
+
+---
+
+## Teams Feature Addition
+
+### Database Schema Additions
+```sql
+create table teams (
+  id uuid primary key default gen_random_uuid(),
+  leader_id uuid references profiles(id) on delete cascade not null,
+  is_full boolean default false not null,
+  created_at timestamptz default now()
+);
+
+alter table profiles add column team_id uuid references teams(id) on delete set null;
+
+create table team_invites (
+  id uuid primary key default gen_random_uuid(),
+  team_id uuid references teams(id) on delete cascade not null,
+  inviter_id uuid references profiles(id) on delete cascade not null,
+  invitee_id uuid references profiles(id) on delete cascade not null,
+  status text default 'pending' not null check (status in ('pending', 'accepted', 'declined')),
+  created_at timestamptz default now(),
+  unique(team_id, invitee_id)
+);
+
+alter table notifications add column team_invite_id uuid references team_invites(id) on delete cascade;
+
+create table reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid references profiles(id) on delete cascade not null,
+  reported_id uuid references profiles(id) on delete cascade not null,
+  reason text not null,
+  notes text,
+  created_at timestamptz default now()
+);
+
+alter table reports enable row level security;
+
+create policy "Users can insert own reports" on reports for insert with check (
+  reporter_id = (select id from profiles where user_id = auth.uid())
+);
+
+create policy "Users can read own reports" on reports for select using (
+  reporter_id = (select id from profiles where user_id = auth.uid())
+);
+```
+
+### Components
+1. **Teammates Avatar Row**: Rendered at the bottom of the profile card in the swipe feed and in the profile detail page, listing other members of the profile's team. Clicking an avatar opens the Full Profile Popup.
+2. **View Full Profile Button**: Button on the swipe card opening the Full Profile Popup.
+3. **Full Profile Popup**: Modal popup displaying full bio, skills, year, university, project idea, teammate search preference, and GitHub link, excluding contact information.
+4. **Team Invite Action**: Action button in matches grid and chat header enabling a user to invite their matched partner to join their team.
+5. **Team Invite Notifications**: Notification entry with inline "Accept" and "Decline" buttons. Declining sets status to `'declined'`. Accepting deletes the invitee's solo team and associates them with the new team.
+

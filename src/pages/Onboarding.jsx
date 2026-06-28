@@ -21,6 +21,7 @@ export default function Onboarding() {
 
   // Form States
   const [name, setName] = useState(profile?.name || '');
+  const [bio, setBio] = useState(profile?.bio || '');
   const [university, setUniversity] = useState(profile?.university || '');
   const [year, setYear] = useState(profile?.year || '1st');
 
@@ -29,6 +30,7 @@ export default function Onboarding() {
   const [skillInput, setSkillInput] = useState('');
 
   const [projectIdea, setProjectIdea] = useState(profile?.project_idea || '');
+  const [searchingFor, setSearchingFor] = useState(profile?.searching_for || '');
   const [lookingFor, setLookingFor] = useState(profile?.looking_for || 'match');
 
   const [contactMode, setContactMode] = useState(profile?.contact_mode || 'match');
@@ -55,7 +57,7 @@ export default function Onboarding() {
     }
     if (step === 3) {
       if (!projectIdea.trim()) {
-        toast.error("Please add a brief description of your project idea.");
+        toast.error("Please add a brief description of what you want to achieve with this project.");
         return;
       }
     }
@@ -135,11 +137,13 @@ export default function Onboarding() {
       const profileData = {
         user_id: user.id,
         name: name.trim(),
+        bio: bio.trim() || null,
         university: university.trim(),
         year,
         role,
         skills,
         project_idea: projectIdea.trim(),
+        searching_for: searchingFor.trim() || null,
         looking_for: lookingFor,
         contact_mode: contactMode,
         phone: phone.trim() || null,
@@ -151,11 +155,43 @@ export default function Onboarding() {
         is_active: true,
       };
 
-      const { error: upsertError } = await supabase
+      const { data: upsertedProfile, error: upsertError } = await supabase
         .from('profiles')
-        .upsert(profileData, { onConflict: 'user_id' });
+        .upsert(profileData, { onConflict: 'user_id' })
+        .select()
+        .single();
 
       if (upsertError) throw upsertError;
+
+      // Auto-create a solo team if they don't have one
+      if (upsertedProfile && !upsertedProfile.team_id) {
+        // Double check if a team already exists where this user is leader (just in case)
+        const { data: existingTeam } = await supabase
+          .from('teams')
+          .select('id')
+          .eq('leader_id', upsertedProfile.id)
+          .maybeSingle();
+
+        let teamId;
+        if (existingTeam) {
+          teamId = existingTeam.id;
+        } else {
+          const { data: newTeam, error: teamError } = await supabase
+            .from('teams')
+            .insert({ leader_id: upsertedProfile.id })
+            .select()
+            .single();
+          if (teamError) throw teamError;
+          teamId = newTeam.id;
+        }
+
+        // Update profile with team_id
+        const { error: updateProfileError } = await supabase
+          .from('profiles')
+          .update({ team_id: teamId })
+          .eq('id', upsertedProfile.id);
+        if (updateProfileError) throw updateProfileError;
+      }
 
       toast.success("Profile onboarding complete!");
       await refreshProfile();
@@ -224,6 +260,17 @@ export default function Onboarding() {
                     onChange={(e) => setUniversity(e.target.value)}
                     placeholder="Stanford University"
                     className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">About Me (Bio)</label>
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell other students about yourself, your interests, and what kind of projects you like to work on..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650 resize-none"
                   />
                 </div>
 
@@ -345,28 +392,44 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* STEP 3: Project Idea */}
+          {/* STEP 3: Project Goals */}
           {step === 3 && (
             <div className="space-y-4">
               <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-white">Your Project Blueprint</h2>
-                <p className="text-xs text-gray-400">Describe what you want to build and specify your team requirement.</p>
+                <h2 className="text-2xl font-bold text-white">Your Project Goals</h2>
+                <p className="text-xs text-gray-400">Describe what you want to achieve with this project and specify your team requirement.</p>
               </div>
 
               <div className="space-y-3 pt-2">
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">
-                    What do you want to build? (Max 200 chars)
+                    What do you want to achieve with this project? (Max 200 chars)
                   </label>
                   <textarea
                     value={projectIdea}
                     onChange={(e) => setProjectIdea(e.target.value.slice(0, 200))}
-                    placeholder="e.g. A web platform matching local farmers with restaurants using live inventory updates..."
+                    placeholder="e.g. Build an AI-driven student platform connecting graduation project members based on skills..."
                     rows={4}
                     className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650 resize-none"
                   />
                   <div className="text-right text-[10px] text-gray-500 font-semibold uppercase">
                     {projectIdea.length}/200 characters
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">
+                    What are you searching for in your teammates? (Max 200 chars)
+                  </label>
+                  <textarea
+                    value={searchingFor}
+                    onChange={(e) => setSearchingFor(e.target.value.slice(0, 200))}
+                    placeholder="e.g. Someone with strong backend skills (Node.js/Python) and experience with databases..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650 resize-none"
+                  />
+                  <div className="text-right text-[10px] text-gray-500 font-semibold uppercase">
+                    {searchingFor.length}/200 characters
                   </div>
                 </div>
 
@@ -440,7 +503,7 @@ export default function Onboarding() {
                       <span>⚡</span> Direct Contact
                     </h3>
                     <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">
-                      Anyone who likes my profile can see my contact info right away. No match needed.
+                      Anyone who likes my profile can see my contact handles and phone number immediately. Choosing this means your details will be shown to anyone who swipes right on you, even before you like them back.
                     </p>
                   </div>
                 </label>

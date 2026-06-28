@@ -43,6 +43,10 @@ export default function CardStack({ profiles, onSwipeLeft, onSwipeRight }) {
 
   const handlePointerDown = (e) => {
     if (profiles.length === 0 || transitioning) return;
+    // Don't drag if clicking buttons, links, etc.
+    if (e.target.closest('button') || e.target.closest('a')) {
+      return;
+    }
     setIsDragging(true);
     startPos.current = { x: e.clientX, y: e.clientY };
     if (cardRef.current) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Flame, Heart, Bell, User } from 'lucide-react';
+import { Flame, Heart, Bell, User, Users } from 'lucide-react';
 
 export default function BottomNav({ unreadNotificationsCount }) {
   return (
@@ -27,6 +27,18 @@ export default function BottomNav({ unreadNotificationsCount }) {
       >
         <Heart className="w-6 h-6" />
         <span className="text-[10px] mt-1 font-medium">Matches</span>
+      </NavLink>
+
+      <NavLink
+        to="/team"
+        className={({ isActive }) =>
+          `flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-colors ${
+            isActive ? 'text-indigo-500' : 'text-gray-400 hover:text-gray-200'
+          }`
+        }
+      >
+        <Users className="w-6 h-6" />
+        <span className="text-[10px] mt-1 font-medium">Team</span>
       </NavLink>
 
       <NavLink

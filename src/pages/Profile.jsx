@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-hot-toast';
@@ -30,6 +30,7 @@ export default function Profile() {
   const [skillInput, setSkillInput] = useState('');
 
   const [projectIdea, setProjectIdea] = useState(profile?.project_idea || '');
+  const [searchingFor, setSearchingFor] = useState(profile?.searching_for || '');
   const [lookingFor, setLookingFor] = useState(profile?.looking_for || 'match');
 
   const [contactMode, setContactMode] = useState(profile?.contact_mode || 'match');
@@ -42,6 +43,37 @@ export default function Profile() {
   const [isActive, setIsActive] = useState(profile?.is_active ?? true);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || '');
+
+  const [isLeader, setIsLeader] = useState(false);
+  const [teamFull, setTeamFull] = useState(false);
+  const [teamLoading, setTeamLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadTeam() {
+      if (!profile?.team_id || !profile?.id) {
+        setTeamLoading(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('teams')
+          .select('*')
+          .eq('id', profile.team_id)
+          .single();
+
+        if (error) throw error;
+        if (data.leader_id === profile.id) {
+          setIsLeader(true);
+          setTeamFull(data.is_full);
+        }
+      } catch (err) {
+        console.error("Error loading team in Profile:", err);
+      } finally {
+        setTeamLoading(false);
+      }
+    }
+    loadTeam();
+  }, [profile]);
 
   const addSkill = (skill) => {
     const trimmed = skill.trim();
@@ -118,6 +150,7 @@ export default function Profile() {
           role,
           skills,
           project_idea: projectIdea.trim() || null,
+          searching_for: searchingFor.trim() || null,
           looking_for: lookingFor,
           contact_mode: contactMode,
           phone: phone.trim() || null,
@@ -131,6 +164,15 @@ export default function Profile() {
         .eq('user_id', profile.user_id);
 
       if (updateError) throw updateError;
+
+      // Update team is_full if leader
+      if (isLeader && profile?.team_id) {
+        const { error: teamUpdateError } = await supabase
+          .from('teams')
+          .update({ is_full: teamFull })
+          .eq('id', profile.team_id);
+        if (teamUpdateError) throw teamUpdateError;
+      }
 
       toast.success("Profile saved successfully!");
       await refreshProfile();
@@ -343,19 +385,31 @@ export default function Profile() {
         {/* Card: Project idea */}
         <div className="glass-panel border border-gray-800 rounded-3xl p-6 space-y-4">
           <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-805 pb-2 flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4 text-indigo-400" /> Project blueprint
+            <BookOpen className="w-4 h-4 text-indigo-400" /> Project Goals
           </h3>
 
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Project Idea Pitch</label>
+            <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">What do you want to achieve with this project?</label>
             <textarea
               value={projectIdea}
               onChange={(e) => setProjectIdea(e.target.value.slice(0, 200))}
               rows={3}
-              placeholder="What do you want to build? Summarize your pitch in under 200 characters."
+              placeholder="What do you want to achieve with this project? Summarize your goal in under 200 characters."
               className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650 resize-none"
             />
             <div className="text-right text-[9px] text-gray-550 font-semibold uppercase">{projectIdea.length}/200 characters</div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">What are you searching for in your teammates?</label>
+            <textarea
+              value={searchingFor}
+              onChange={(e) => setSearchingFor(e.target.value.slice(0, 200))}
+              rows={3}
+              placeholder="What are you searching for in your teammates? Summarize your preference in under 200 characters."
+              className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650 resize-none"
+            />
+            <div className="text-right text-[9px] text-gray-550 font-semibold uppercase">{searchingFor.length}/200 characters</div>
           </div>
 
           <div className="space-y-1">
@@ -370,6 +424,23 @@ export default function Profile() {
               <option value="browsing">👀 Just exploring (I want to see profiles)</option>
             </select>
           </div>
+
+          {isLeader && (
+            <div className="flex items-center gap-3 pt-2">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={teamFull} 
+                  onChange={(e) => setTeamFull(e.target.checked)} 
+                  className="sr-only peer" 
+                />
+                <div className="w-11 h-6 bg-gray-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
+                <span className="ml-3 text-xs font-semibold text-gray-305 text-gray-400">
+                  Team is full (No longer recruiting teammates)
+                </span>
+              </label>
+            </div>
+          )}
         </div>
 
         {/* Card: Contact and Socials */}

@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import { Toaster } from 'react-hot-toast';
@@ -11,9 +11,10 @@ const Auth = lazy(() => import('./pages/Auth'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const Swipe = lazy(() => import('./pages/Swipe'));
 const Matches = lazy(() => import('./pages/Matches'));
-const Chat = lazy(() => import('./pages/Chat'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Profile = lazy(() => import('./pages/Profile'));
+const ProfileView = lazy(() => import('./pages/ProfileView'));
+const Team = lazy(() => import('./pages/Team'));
 
 export default function App() {
   return (
@@ -23,7 +24,7 @@ export default function App() {
         <Toaster
           position="top-center"
           toastOptions={{
-            duration: 3000,
+            duration: 1500,
             style: {
               background: '#111827', // gray-900
               color: '#fff',
@@ -50,9 +51,10 @@ export default function App() {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/swipe" element={<Swipe />} />
               <Route path="/matches" element={<Matches />} />
-              <Route path="/chat/:matchId" element={<Chat />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/team" element={<Team />} />
+              <Route path="/view-profile/:profileId" element={<ProfileView />} />
             </Route>
 
             {/* Fallback route */}

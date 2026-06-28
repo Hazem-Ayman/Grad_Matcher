@@ -17,7 +17,15 @@ export function useNotifications(currentProfile) {
           type,
           read,
           created_at,
-          from_user:from_user_id (*)
+          from_user:from_user_id (*),
+          team_invite:team_invite_id (
+            id,
+            status,
+            team:team_id (
+              id,
+              project_idea
+            )
+          )
         `)
         .eq('user_id', currentProfile.id)
         .order('created_at', { ascending: false });
@@ -58,9 +66,27 @@ export function useNotifications(currentProfile) {
               .eq('id', payload.new.from_user_id)
               .single();
 
+            let teamInvite = null;
+            if (payload.new.team_invite_id) {
+              const { data: invite } = await supabase
+                .from('team_invites')
+                .select(`
+                  id,
+                  status,
+                  team:team_id (
+                    id,
+                    project_idea
+                  )
+                `)
+                .eq('id', payload.new.team_invite_id)
+                .maybeSingle();
+              teamInvite = invite;
+            }
+
             const fullNotif = {
               ...payload.new,
               from_user: fromUser,
+              team_invite: teamInvite
             };
 
             setNotifications(prev => [fullNotif, ...prev]);

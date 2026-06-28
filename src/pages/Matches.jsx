@@ -5,7 +5,26 @@ import MatchCard from '../components/matches/MatchCard';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import EmptyState from '../components/ui/EmptyState';
 import { useNavigate } from 'react-router-dom';
-import { X, ShieldCheck, PhoneCall, Camera, Briefcase, Send, Compass } from 'lucide-react';
+import { X, ShieldCheck, PhoneCall, Camera, Briefcase, Send, Compass, Copy, Check } from 'lucide-react';
+
+const CopyButton = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition-colors cursor-pointer ml-1.5 flex-shrink-0"
+      title="Copy to clipboard"
+    >
+      {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
+  );
+};
 
 export default function Matches() {
   const { profile: currentProfile } = useAuth();
@@ -42,6 +61,7 @@ export default function Matches() {
             <MatchCard
               key={match.id}
               match={match}
+              currentProfile={currentProfile}
               onViewContact={handleOpenContact}
             />
           ))}
@@ -95,32 +115,37 @@ export default function Matches() {
                 {selectedProfile.phone && (
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-gray-400"><PhoneCall className="w-3.5 h-3.5" /> Phone:</span>
-                    <span className="font-semibold text-white select-all">{selectedProfile.phone}</span>
+                    <div className="flex items-center min-w-0">
+                      <span className="font-semibold text-white select-all truncate max-w-[150px]">{selectedProfile.phone}</span>
+                      <CopyButton text={selectedProfile.phone} />
+                    </div>
                   </div>
                 )}
                 {selectedProfile.instagram && (
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-gray-400"><Camera className="w-3.5 h-3.5" /> Instagram:</span>
-                    <span className="font-semibold text-white select-all">{selectedProfile.instagram}</span>
+                    <div className="flex items-center min-w-0">
+                      <span className="font-semibold text-white select-all truncate max-w-[150px]">{selectedProfile.instagram}</span>
+                      <CopyButton text={selectedProfile.instagram} />
+                    </div>
                   </div>
                 )}
                 {selectedProfile.telegram && (
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-gray-400"><Send className="w-3.5 h-3.5" /> Telegram:</span>
-                    <span className="font-semibold text-white select-all">{selectedProfile.telegram}</span>
+                    <div className="flex items-center min-w-0">
+                      <span className="font-semibold text-white select-all truncate max-w-[150px]">{selectedProfile.telegram}</span>
+                      <CopyButton text={selectedProfile.telegram} />
+                    </div>
                   </div>
                 )}
                 {selectedProfile.linkedin && (
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs text-gray-400"><Briefcase className="w-3.5 h-3.5" /> LinkedIn:</span>
-                    <a
-                      href={selectedProfile.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold text-indigo-400 hover:underline truncate max-w-[150px]"
-                    >
-                      Open Link
-                    </a>
+                    <div className="flex items-center min-w-0">
+                      <span className="font-semibold text-white select-all truncate max-w-[150px]">{selectedProfile.linkedin}</span>
+                      <CopyButton text={selectedProfile.linkedin} />
+                    </div>
                   </div>
                 )}
                 {!selectedProfile.phone && !selectedProfile.instagram && !selectedProfile.telegram && !selectedProfile.linkedin && (

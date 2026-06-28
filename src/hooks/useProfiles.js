@@ -28,7 +28,7 @@ export function useProfiles(currentProfile) {
       // 2. Fetch profiles
       let query = supabase
         .from('profiles')
-        .select('id, name, bio, year, university, role, skills, github_url, project_idea, looking_for, avatar_url, contact_mode')
+        .select('id, name, bio, year, university, role, skills, github_url, project_idea, searching_for, looking_for, avatar_url, contact_mode, phone, instagram, linkedin, telegram, team_id, team:teams!team_id(id, leader_id, is_full, members:profiles!team_id(id, name, avatar_url))')
         .eq('is_active', true)
         .eq('onboarding_complete', true)
         .neq('looking_for', 'browsing');
@@ -90,14 +90,24 @@ export function useProfiles(currentProfile) {
     if (currentProfile) {
       setLoading(true);
       try {
-        // Delete swipes with 'left' direction for current swiper to reset them in the feed
-        await supabase
-          .from('swipes')
-          .delete()
-          .eq('swiper_id', currentProfile.id)
-          .eq('direction', 'left');
+        // 1. Fetch matched partner IDs to exclude them from clearing
+        const { data: matchesData } = await supabase
+          .from('matches')
+          .select('user1_id, user2_id')
+          .or(`user1_id.eq.${currentProfile.id},user2_id.eq.${currentProfile.id}`);
+
+        const matchedPartnerIds = (matchesData || []).map(m => 
+          m.user1_id === currentProfile.id ? m.user2_id : m.user1_id
+        );
+
+        // 2. Delete swipes from this user that are not part of a mutual match
+        let query = supabase.from('swipes').delete().eq('swiper_id', currentProfile.id);
+        if (matchedPartnerIds.length > 0) {
+          query = query.not('swiped_id', 'in', `(${matchedPartnerIds.join(',')})`);
+        }
+        await query;
       } catch (err) {
-        console.error("Error clearing left swipes during refresh:", err);
+        console.error("Error clearing swipes during refresh:", err);
       } finally {
         setProfiles([]);
         setHasMore(true);

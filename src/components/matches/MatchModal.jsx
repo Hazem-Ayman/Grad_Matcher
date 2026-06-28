@@ -1,22 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import Avatar from '../ui/Avatar';
-import { MessageSquare, Flame, PhoneCall, X, ShieldCheck, Mail, Camera, Briefcase, Send } from 'lucide-react';
+import { Flame, PhoneCall, X, ShieldCheck, Camera, Briefcase, Send } from 'lucide-react';
 
-export default function MatchModal({ isOpen, onClose, currentProfile, matchedProfile, matchId }) {
+export default function MatchModal({ isOpen, onClose, currentProfile, matchedProfile }) {
   const [showContact, setShowContact] = useState(false);
-  const navigate = useNavigate();
 
   if (!isOpen || !matchedProfile || !currentProfile) return null;
-
-  const handleMessageClick = () => {
-    onClose();
-    if (matchId) {
-      navigate(`/chat/${matchId}`);
-    } else {
-      navigate('/matches');
-    }
-  };
 
   const contactOptions = [
     { key: 'phone', label: 'Phone', icon: PhoneCall, value: matchedProfile.phone },
@@ -109,16 +98,8 @@ export default function MatchModal({ isOpen, onClose, currentProfile, matchedPro
           )}
 
           <button
-            onClick={handleMessageClick}
-            className="flex items-center justify-center gap-2 w-full py-3 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white rounded-2xl text-sm font-semibold tracking-wide transition-all active:scale-98 cursor-pointer"
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Send a Message</span>
-          </button>
-
-          <button
             onClick={onClose}
-            className="flex items-center justify-center gap-2 w-full py-3 text-xs text-gray-500 hover:text-gray-300 font-medium transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white rounded-2xl text-sm font-semibold tracking-wide transition-all active:scale-98 cursor-pointer"
           >
             <Flame className="w-3.5 h-3.5" />
             <span>Keep Swiping</span>

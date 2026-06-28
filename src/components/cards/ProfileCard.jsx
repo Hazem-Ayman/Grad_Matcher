@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Avatar from '../ui/Avatar';
 import RoleBadge from '../ui/RoleBadge';
 import LookingForBadge from '../ui/LookingForBadge';
 import SkillChip from '../ui/SkillChip';
-import { Code, ExternalLink } from 'lucide-react';
+import FullProfilePopup from '../ui/FullProfilePopup';
+import { Code, ExternalLink, Users } from 'lucide-react';
+import { supabase } from '../../supabaseClient';
+import { toast } from 'react-hot-toast';
 
 export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
   if (!profile) return null;
@@ -16,9 +19,43 @@ export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
     skills,
     github_url,
     project_idea,
+    searching_for,
     looking_for,
     avatar_url,
+    team,
   } = profile;
+
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  const handleOpenTeammate = async (e, teammateId) => {
+    e.stopPropagation();
+    setLoadingProfile(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', teammateId)
+        .single();
+      if (error) throw error;
+      setSelectedProfile(data);
+      setIsPopupOpen(true);
+    } catch (err) {
+      console.error("Error fetching teammate profile:", err);
+      toast.error("Failed to load teammate profile.");
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const handleOpenMainProfile = (e) => {
+    e.stopPropagation();
+    setSelectedProfile(profile);
+    setIsPopupOpen(true);
+  };
+
+  const otherMembers = team?.members?.filter(m => m.id !== profile.id) || [];
 
   // Calculate overlay opacity based on swipe drag distance
   const likeOpacity = Math.min(Math.max(dragX / 100, 0), 0.8);
@@ -86,6 +123,23 @@ export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
           <div className="h-6"></div>
         )}
 
+        {/* View Full Profile Button */}
+        <button
+          onClick={handleOpenMainProfile}
+          className="w-full py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/30 rounded-xl text-xs font-bold transition-all active:scale-98 cursor-pointer"
+        >
+          View Full Profile
+        </button>
+
+        {searching_for && (
+          <div className="w-full text-left space-y-1 my-1">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Searching for in teammates</span>
+            <p className="text-xs text-gray-350 bg-gray-950/30 border border-gray-850 p-2.5 rounded-xl leading-relaxed">
+              {searching_for}
+            </p>
+          </div>
+        )}
+
         {/* Skills wrapper */}
         {skills && skills.length > 0 && (
           <div className="w-full space-y-1.5 text-left">
@@ -97,7 +151,50 @@ export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
             </div>
           </div>
         )}
+
+        {/* Teammates section */}
+        <hr className="w-full border-gray-800/60 my-1" />
+
+        <div className="w-full space-y-2 text-left">
+          <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 flex items-center gap-1">
+            <Users className="w-3 h-3 text-indigo-400" /> Team Members
+          </span>
+          {otherMembers.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {otherMembers.map((member) => (
+                <button
+                  key={member.id}
+                  onClick={(e) => handleOpenTeammate(e, member.id)}
+                  disabled={loadingProfile}
+                  className="relative group focus:outline-none transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                  title={`View ${member.name}'s profile`}
+                >
+                  <Avatar
+                    src={member.avatar_url}
+                    name={member.name}
+                    size="sm"
+                    className="border border-indigo-500/30 group-hover:border-indigo-400"
+                  />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-0.5 bg-gray-950 text-[9px] text-gray-300 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-800">
+                    {member.name}
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500 italic">Solo — no team yet</p>
+          )}
+        </div>
+
+        <hr className="w-full border-gray-800/60 my-1" />
       </div>
+
+      {/* Full Profile Details Modal */}
+      <FullProfilePopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        profile={selectedProfile}
+      />
 
       {/* Card Footer (GitHub Link) */}
       <div className="bg-gray-950/50 border-t border-gray-800/60 p-4 flex items-center justify-center">

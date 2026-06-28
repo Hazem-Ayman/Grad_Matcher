@@ -17,8 +17,8 @@ export function useMatches(currentProfile) {
         .select(`
           id,
           created_at,
-          user1:user1_id (*),
-          user2:user2_id (*)
+          user1:profiles!user1_id (*),
+          user2:profiles!user2_id (*)
         `)
         .or(`user1_id.eq.${currentProfile.id},user2_id.eq.${currentProfile.id}`)
         .order('created_at', { ascending: false });
@@ -35,7 +35,17 @@ export function useMatches(currentProfile) {
         };
       });
 
-      setMatches(transformedMatches);
+      // Filter out duplicate profiles to guarantee uniqueness in UI
+      const seenProfileIds = new Set();
+      const uniqueMatches = [];
+      transformedMatches.forEach(m => {
+        if (m.profile && !seenProfileIds.has(m.profile.id)) {
+          seenProfileIds.add(m.profile.id);
+          uniqueMatches.push(m);
+        }
+      });
+
+      setMatches(uniqueMatches);
     } catch (err) {
       console.error("Error fetching matches:", err);
       setError(err.message);

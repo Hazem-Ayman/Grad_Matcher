@@ -27,6 +27,7 @@ const mockUsers = [
       role: 'frontend',
       skills: ['React', 'TailwindCSS', 'TypeScript'],
       project_idea: 'A gamified student scheduling and progress tracking calendar dashboard.',
+      searching_for: 'Looking for a backend developer experienced with databases and server architecture.',
       looking_for: 'full_team',
       contact_mode: 'open',
       phone: '+15550101',
@@ -48,6 +49,7 @@ const mockUsers = [
       role: 'backend',
       skills: ['Python', 'Node.js', 'PostgreSQL', 'Docker'],
       project_idea: 'High-performance real-time public transit routing API.',
+      searching_for: 'Need a frontend dev who loves design systems and building reactive components.',
       looking_for: 'one_member',
       contact_mode: 'match',
       phone: '+15550102',
@@ -69,6 +71,7 @@ const mockUsers = [
       role: 'designer',
       skills: ['Figma', 'Adobe XD', 'Illustrating'],
       project_idea: 'A community food-sharing platform layout wireframes.',
+      searching_for: 'Looking for ML students who need UI design and front-end wireframing support.',
       looking_for: 'full_team',
       contact_mode: 'open',
       phone: '+15550103',
@@ -90,6 +93,7 @@ const mockUsers = [
       role: 'ml',
       skills: ['Python', 'PyTorch', 'TensorFlow', 'Scikit-Learn'],
       project_idea: 'Medical imaging anomaly detection engine using CNN models.',
+      searching_for: 'Searching for software engineers to build the wrapper application and APIs.',
       looking_for: 'one_member',
       contact_mode: 'match',
       phone: '+15550104',
@@ -111,6 +115,7 @@ const mockUsers = [
       role: 'mobile',
       skills: ['Flutter', 'Dart', 'Firebase', 'SQL'],
       project_idea: 'A micro-tutoring matching tool connecting students locally.',
+      searching_for: 'Seeking UI designers and backend developers to form a complete mobile startup team.',
       looking_for: 'one_member',
       contact_mode: 'open',
       phone: '+15550105',
@@ -132,6 +137,7 @@ const mockUsers = [
       role: 'fullstack',
       skills: ['Next.js', 'Node.js', 'MongoDB', 'TailwindCSS'],
       project_idea: 'A local marketplace connecting students for swapping textbooks.',
+      searching_for: 'Open to collaborating with anyone interested in deployment and project planning.',
       looking_for: 'full_team',
       contact_mode: 'match',
       phone: '+15550106',
@@ -153,6 +159,7 @@ const mockUsers = [
       role: 'frontend',
       skills: ['Vue', 'JavaScript', 'CSS', 'HTML'],
       project_idea: 'An interactive campus map showing study room occupancy levels.',
+      searching_for: 'Looking for creative minds to brainstorm mobile applications and map systems.',
       looking_for: 'browsing',
       contact_mode: 'open',
       phone: '+15550107',
@@ -174,6 +181,7 @@ const mockUsers = [
       role: 'backend',
       skills: ['Django', 'FastAPI', 'SQL', 'Docker'],
       project_idea: 'Decentralized anonymous file locker for student lecture logs.',
+      searching_for: 'Need backend and ML engineers interested in cybersecurity and decentralized protocols.',
       looking_for: 'full_team',
       contact_mode: 'match',
       phone: '+15550108',
@@ -195,6 +203,7 @@ const mockUsers = [
       role: 'ml',
       skills: ['Python', 'Pandas', 'NumPy', 'TensorFlow'],
       project_idea: 'A predictive model calculating campus cafeteria queue times.',
+      searching_for: 'Looking for statisticians and engineers interested in large data processing.',
       looking_for: 'one_member',
       contact_mode: 'open',
       phone: '+15550109',
@@ -216,6 +225,7 @@ const mockUsers = [
       role: 'designer',
       skills: ['Figma', 'Illustrations', 'Design Systems'],
       project_idea: 'Gamified habit tracker app mockup with custom avatars.',
+      searching_for: 'Seeking frontend developers who can turn Figma mockups into clean, working code.',
       looking_for: 'full_team',
       contact_mode: 'match',
       phone: '+15550110',
@@ -240,14 +250,26 @@ async function seed() {
       });
 
       if (error) {
-        console.error(`Sign up failed for ${user.email}:`, error.message);
+        console.log(`Sign up failed or user exists for ${user.email}. Attempting profile update.`);
+        // Try to fetch profile and upsert directly if user exists
+        const { data: userList } = await supabase.from('profiles').select('id, user_id').eq('name', user.profile.name).limit(1);
+        if (userList && userList.length > 0) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update(user.profile)
+            .eq('id', userList[0].id);
+          if (profileError) {
+            console.error(`Profile update failed:`, profileError.message);
+          } else {
+            console.log(`Updated existing profile for ${user.email}`);
+          }
+        }
         continue;
       }
 
       if (data?.user) {
         console.log(`Created user ${user.email} (ID: ${data.user.id}). Inserting profile...`);
         
-        // Wait a small moment to ensure auth trigger creates base profile or we write it
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({

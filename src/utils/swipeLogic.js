@@ -12,18 +12,7 @@ export async function handleRightSwipe(supabase, currentProfile, targetProfile) 
     throw swipeError;
   }
 
-  // 2. Branch on target's contact_mode
-  if (targetProfile.contact_mode === 'open') {
-    // Notify them that contact was revealed
-    await supabase.from('notifications').insert({
-      user_id: targetProfile.id,
-      type: 'contact_revealed',
-      from_user_id: currentProfile.id
-    });
-    return { type: 'open', contactInfo: getContactInfo(targetProfile) };
-  }
-
-  // contact_mode === 'match': check for mutual swipe
+  // 2. Check for mutual swipe first
   const { data: theirSwipe } = await supabase
     .from('swipes')
     .select('id')
@@ -32,30 +21,72 @@ export async function handleRightSwipe(supabase, currentProfile, targetProfile) 
     .eq('direction', 'right')
     .maybeSingle(); // Use maybeSingle to prevent 406/PGRST116 errors if not found
 
-  if (theirSwipe) {
-    // Mutual match! Make sure user1_id and user2_id are unique/ordered if desired,
-    // but the spec specifies: { user1_id: currentProfile.id, user2_id: targetProfile.id }
-    const { data: match, error: matchError } = await supabase
-      .from('matches')
-      .insert({ user1_id: currentProfile.id, user2_id: targetProfile.id })
-      .select()
-      .single();
+  // Check if match already exists in either direction
+  const { data: existingMatch } = await supabase
+    .from('matches')
+    .select('*')
+    .or(`and(user1_id.eq.${currentProfile.id},user2_id.eq.${targetProfile.id}),and(user1_id.eq.${targetProfile.id},user2_id.eq.${currentProfile.id})`)
+    .maybeSingle();
 
-    if (matchError) {
-      console.error("Error creating match:", matchError);
-      throw matchError;
+  if (theirSwipe) {
+    // Mutual match!
+    let match = existingMatch;
+    if (!match) {
+      const { data: newMatch, error: matchError } = await supabase
+        .from('matches')
+        .insert({ user1_id: currentProfile.id, user2_id: targetProfile.id })
+        .select()
+        .single();
+
+      if (matchError) {
+        console.error("Error creating match:", matchError);
+      } else {
+        match = newMatch;
+      }
     }
 
-    await supabase.from('notifications').insert({
-      user_id: targetProfile.id,
-      type: 'new_match',
-      from_user_id: currentProfile.id
-    });
+    // Only send notification if match didn't exist before to prevent double notifications
+    if (!existingMatch) {
+      await supabase.from('notifications').insert({
+        user_id: targetProfile.id,
+        type: 'new_match',
+        from_user_id: currentProfile.id
+      });
+    }
 
     return { type: 'match', match, contactInfo: getContactInfo(targetProfile) };
   }
 
-  // No mutual match yet — notify them
+  if (targetProfile.contact_mode === 'open') {
+    // Target is open-contact mode (matches immediately, but NOT a mutual match!)
+    let match = existingMatch;
+    if (!match) {
+      const { data: newMatch, error: matchError } = await supabase
+        .from('matches')
+        .insert({ user1_id: currentProfile.id, user2_id: targetProfile.id })
+        .select()
+        .single();
+
+      if (matchError) {
+        console.error("Error creating match:", matchError);
+      } else {
+        match = newMatch;
+      }
+    }
+
+    // Only notify them if match didn't exist before to prevent double notifications
+    if (!existingMatch) {
+      await supabase.from('notifications').insert({
+        user_id: targetProfile.id,
+        type: 'contact_revealed',
+        from_user_id: currentProfile.id
+      });
+    }
+
+    return { type: 'open', match, contactInfo: getContactInfo(targetProfile) };
+  }
+
+  // contact_mode === 'match'
   await supabase.from('notifications').insert({
     user_id: targetProfile.id,
     type: 'liked_you',
