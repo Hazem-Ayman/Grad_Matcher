@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import EmptyState from '../components/ui/EmptyState';
 import { handleRightSwipe } from '../utils/swipeLogic';
 import { supabase } from '../supabaseClient';
-import { X, CheckCheck, Flame, Heart, Compass } from 'lucide-react';
+import { X, CheckCheck, Flame, Heart, Compass, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function Notifications() {
@@ -21,6 +21,7 @@ export default function Notifications() {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [likingBack, setLikingBack] = useState(false);
 
   // Celebration match modal
   const [isMatchOpen, setIsMatchOpen] = useState(false);
@@ -43,16 +44,19 @@ export default function Notifications() {
   };
 
   const handleLikeBack = async () => {
-    if (!selectedProfile || !currentProfile || !selectedNotification) return;
+    if (!selectedProfile || !currentProfile || !selectedNotification || likingBack) return;
 
     const targetProfile = selectedProfile;
-    // Dismiss the profile preview modal
-    setIsProfileModalOpen(false);
+    setLikingBack(true);
 
     try {
       const result = await handleRightSwipe(supabase, currentProfile, targetProfile);
 
       if (result.type === 'match') {
+        // Mark as read immediately on match success
+        if (!selectedNotification.read) {
+          await markAsRead(selectedNotification.id);
+        }
         setMatchedProfile(targetProfile);
         setMatchId(result.match?.id || null);
         setIsMatchOpen(true);
@@ -60,9 +64,12 @@ export default function Notifications() {
       } else {
         toast.success(`Liked ${targetProfile.name}!`);
       }
+      setIsProfileModalOpen(false); // Close preview modal on success
     } catch (err) {
       console.error("Error liking user back:", err);
       toast.error("Operation failed.");
+    } finally {
+      setLikingBack(false);
     }
   };
 
@@ -229,17 +236,23 @@ export default function Notifications() {
             {/* Match action buttons */}
             <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => setIsProfileModalOpen(false)}
-                className="py-3 bg-gray-900 border border-gray-850 hover:border-gray-700 text-gray-400 hover:text-white text-xs font-bold rounded-2xl transition-all cursor-pointer active:scale-95"
+                onClick={() => !likingBack && setIsProfileModalOpen(false)}
+                disabled={likingBack}
+                className="py-3 bg-gray-900 border border-gray-855 hover:border-gray-700 text-gray-400 hover:text-white text-xs font-bold rounded-2xl transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Dismiss
               </button>
               <button
                 onClick={handleLikeBack}
-                className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/15 cursor-pointer active:scale-95"
+                disabled={likingBack}
+                className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/15 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-wait"
               >
-                <Heart className="w-4 h-4 fill-white" />
-                <span>Like Back</span>
+                {likingBack ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <Heart className="w-4 h-4 fill-white" />
+                )}
+                <span>{likingBack ? 'Liking back...' : 'Like Back'}</span>
               </button>
             </div>
           </div>

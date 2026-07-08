@@ -5,27 +5,11 @@ import MatchCard from '../components/matches/MatchCard';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import EmptyState from '../components/ui/EmptyState';
 import { useNavigate } from 'react-router-dom';
-import { X, ShieldCheck, PhoneCall, Camera, Briefcase, Send, Compass, Copy, Check, RefreshCw } from 'lucide-react';
+import { X, ShieldCheck, PhoneCall, Camera, Briefcase, Send, Compass, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import CopyButton from '../components/ui/CopyButton';
 
-const CopyButton = ({ text }) => {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = (e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  return (
-    <button
-      onClick={handleCopy}
-      className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition-colors cursor-pointer ml-1.5 flex-shrink-0"
-      title="Copy to clipboard"
-    >
-      {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-    </button>
-  );
-};
+
 
 export default function Matches() {
   const { profile: currentProfile } = useAuth();

@@ -34,6 +34,7 @@ export default function Onboarding() {
   const [instagram, setInstagram] = useState(profile?.instagram || '');
   const [telegram, setTelegram] = useState(profile?.telegram || '');
   const [linkedin, setLinkedin] = useState(profile?.linkedin || '');
+  const [githubUrl, setGithubUrl] = useState(profile?.github_url || '');
 
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || '');
@@ -64,8 +65,8 @@ export default function Onboarding() {
         toast.error("Please add a brief description of what you want to achieve with this project.");
         return;
       }
-      if (!phone.trim() && !instagram.trim() && !telegram.trim() && !linkedin.trim()) {
-        toast.error("Please provide at least one contact method.");
+      if (!phone.trim() && !instagram.trim() && !telegram.trim() && !linkedin.trim() && !githubUrl.trim()) {
+        toast.error("Please provide at least one contact method (e.g. Phone, Instagram, Telegram, LinkedIn, or GitHub).");
         return;
       }
     }
@@ -163,6 +164,7 @@ export default function Onboarding() {
         instagram: instagram.trim() || null,
         telegram: telegram.trim() || null,
         linkedin: linkedin.trim() || null,
+        github_url: githubUrl.trim() || null,
         avatar_url: avatarUrl || null,
         onboarding_complete: true,
         is_active: true,
@@ -611,6 +613,17 @@ export default function Onboarding() {
                       value={linkedin}
                       onChange={(e) => setLinkedin(e.target.value)}
                       placeholder="LinkedIn Profile URL"
+                      className="w-full pl-11 pr-4 py-3 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Code className="absolute left-4 top-3.5 w-4 h-4 text-gray-500" />
+                    <input
+                      type="text"
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      placeholder="GitHub URL (e.g. github.com/username)"
                       className="w-full pl-11 pr-4 py-3 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650"
                     />
                   </div>

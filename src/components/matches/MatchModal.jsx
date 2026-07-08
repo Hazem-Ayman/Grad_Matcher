@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Avatar from '../ui/Avatar';
 import { Flame, PhoneCall, X, ShieldCheck, Camera, Briefcase, Send } from 'lucide-react';
 
 export default function MatchModal({ isOpen, onClose, currentProfile, matchedProfile }) {
   const [showContact, setShowContact] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowContact(false);
+    }
+  }, [isOpen, matchedProfile?.id]);
 
   if (!isOpen || !matchedProfile || !currentProfile) return null;
 

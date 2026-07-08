@@ -201,7 +201,7 @@ export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
       <div className="bg-gray-950/50 border-t border-gray-800/60 p-4 flex items-center justify-center">
         {github_url ? (
           <a
-            href={github_url}
+            href={github_url.startsWith('http') ? github_url : `https://${github_url}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center space-x-2 text-xs font-semibold text-gray-400 hover:text-white bg-gray-850 hover:bg-gray-800 px-4 py-2.5 rounded-xl border border-gray-800 hover:border-gray-700 transition-all shadow-inner w-full justify-center group"

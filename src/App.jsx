@@ -24,7 +24,7 @@ export default function App() {
         <Toaster
           position="top-center"
           toastOptions={{
-            duration: 1500,
+            duration: 3500,
             style: {
               background: '#111827', // gray-900
               color: '#fff',
