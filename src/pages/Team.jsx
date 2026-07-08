@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseClient';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Avatar from '../components/ui/Avatar';
-import RoleBadge from '../components/ui/RoleBadge';
+import RoleBadge, { roleNames } from '../components/ui/RoleBadge';
 import SkillChip from '../components/ui/SkillChip';
 import { Users, Crown, Sparkles, BookOpen, Compass, Mail, X, Loader2, Check, Copy } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -468,7 +468,7 @@ export default function Team() {
                     </div>
                     <p className="text-xs text-indigo-400 truncate">{member.university}</p>
                     <div className="flex flex-wrap pt-0.5">
-                      <RoleBadge role={member.role} />
+                      <RoleBadge role={member.role} framework={member.framework} />
                     </div>
                   </div>
                 </div>
@@ -509,7 +509,9 @@ export default function Team() {
                   <div className="text-left min-w-0">
                     <h4 className="text-sm font-bold text-white truncate max-w-[150px]">{invite.invitee?.name}</h4>
                     <p className="text-[10px] text-indigo-400 truncate uppercase tracking-wider font-semibold">
-                      {invite.invitee?.role || 'Teammate'}
+                      {invite.invitee?.role 
+                        ? `${roleNames[invite.invitee.role.toLowerCase()] || invite.invitee.role}${invite.invitee.framework ? ` • ${invite.invitee.framework}` : ''}`
+                        : 'Teammate'}
                     </p>
                   </div>
                 </div>

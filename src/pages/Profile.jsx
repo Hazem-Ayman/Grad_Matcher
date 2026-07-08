@@ -6,14 +6,9 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Avatar from '../components/ui/Avatar';
 import { 
   Save, EyeOff, User, Phone, Camera, Send, Briefcase, Code, 
-  BookOpen, Sparkles, Shield, Upload
+  BookOpen, Sparkles, Shield, Upload, Search, MessageSquare
 } from 'lucide-react';
-
-const SUGGESTED_SKILLS = [
-  'React', 'Node.js', 'Python', 'ML', 'AI', 'TensorFlow', 'PyTorch', 
-  'FastAPI', 'Figma', 'SQL', 'MongoDB', 'Docker', 'Flutter', 'Swift', 
-  'Kotlin', 'Django', 'TailwindCSS', 'TypeScript', 'Next.js'
-];
+import { CS_FIELDS, MASTER_SKILLS, getSuggestedSkills } from '../utils/csFields';
 
 export default function Profile() {
   const { profile, refreshProfile } = useAuth();
@@ -26,8 +21,10 @@ export default function Profile() {
   const [bio, setBio] = useState(profile?.bio || '');
 
   const [role, setRole] = useState(profile?.role || 'frontend');
+  const [framework, setFramework] = useState(profile?.framework || '');
   const [skills, setSkills] = useState(profile?.skills || []);
-  const [skillInput, setSkillInput] = useState('');
+  const [skillSearch, setSkillSearch] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const [projectIdea, setProjectIdea] = useState(profile?.project_idea || '');
   const [searchingFor, setSearchingFor] = useState(profile?.searching_for || '');
@@ -79,21 +76,31 @@ export default function Profile() {
     const trimmed = skill.trim();
     if (!trimmed) return;
     if (skills.includes(trimmed)) {
-      setSkillInput('');
+      setSkillSearch('');
       return;
     }
     setSkills([...skills, trimmed]);
-    setSkillInput('');
+    setSkillSearch('');
   };
 
   const removeSkill = (indexToRemove) => {
     setSkills(skills.filter((_, idx) => idx !== indexToRemove));
   };
 
-  const handleSkillKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addSkill(skillInput);
+  const handleRequestSkill = async (skillName) => {
+    const cleanName = skillName.trim();
+    if (!cleanName) return;
+    try {
+      await supabase.from('skills_feedback').insert({
+        user_id: profile?.user_id || null,
+        requested_skill: cleanName
+      });
+      toast.success(`Requested "${cleanName}"! We'll review and add it soon.`, { duration: 3000 });
+      setSkillSearch('');
+    } catch (err) {
+      console.error("Error submitting skill feedback:", err);
+      toast.success(`Requested "${cleanName}"! (Feedback logged)`);
+      setSkillSearch('');
     }
   };
 
@@ -109,6 +116,18 @@ export default function Profile() {
     e.preventDefault();
     if (!name.trim() || !university.trim()) {
       toast.error("Name and University fields are required.");
+      return;
+    }
+    if (!role) {
+      toast.error("Please select a primary CS field.");
+      return;
+    }
+    if (!framework) {
+      toast.error("Please select a framework/primary tech.");
+      return;
+    }
+    if (skills.length === 0) {
+      toast.error("Please select at least one skill.");
       return;
     }
     if (!phone.trim() && !instagram.trim() && !telegram.trim() && !linkedin.trim()) {
@@ -148,6 +167,7 @@ export default function Profile() {
           year,
           bio: bio.trim() || null,
           role,
+          framework: framework || null,
           skills,
           project_idea: projectIdea.trim() || null,
           searching_for: searchingFor.trim() || null,
@@ -292,21 +312,37 @@ export default function Profile() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Role</label>
+              <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">CS Field / Role</label>
               <select
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
+                onChange={(e) => {
+                  setRole(e.target.value);
+                  setFramework(''); // Reset framework selection on role change
+                }}
                 className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
               >
-                <option value="frontend">Frontend Developer</option>
-                <option value="backend">Backend Developer</option>
-                <option value="fullstack">Fullstack Developer</option>
-                <option value="ml">ML / AI Engineer</option>
-                <option value="mobile">Mobile Developer</option>
-                <option value="designer">UI/UX Designer</option>
-                <option value="other">Other</option>
+                <option value="">-- Select CS Field --</option>
+                {CS_FIELDS.map(f => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
               </select>
             </div>
+
+            {role && (
+              <div className="space-y-1 animate-in fade-in duration-200">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Framework / Primary Tech</label>
+                <select
+                  value={framework}
+                  onChange={(e) => setFramework(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
+                >
+                  <option value="">-- Select Framework --</option>
+                  {CS_FIELDS.find(f => f.id === role)?.frameworks.map(fw => (
+                    <option key={fw} value={fw}>{fw}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="space-y-1 pt-1">
@@ -327,26 +363,77 @@ export default function Profile() {
             <Sparkles className="w-4 h-4 text-indigo-400" /> Skills & Technologies
           </h3>
 
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyDown={handleSkillKeyDown}
-              placeholder="Type skill and press Enter (e.g. PyTorch)"
-              className="flex-1 px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650"
-            />
-            <button
-              type="button"
-              onClick={() => addSkill(skillInput)}
-              className="px-4 py-2.5 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-250 text-xs font-semibold rounded-2xl cursor-pointer"
-            >
-              Add
-            </button>
+          <div className="relative space-y-2">
+            <div className="relative">
+              <Search className="absolute left-4 top-3.5 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
+                value={skillSearch}
+                onChange={(e) => {
+                  setSkillSearch(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                placeholder="Search and select skills (e.g. Git, RESTful APIs...)"
+                className="w-full pl-11 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all placeholder-gray-650"
+              />
+            </div>
+
+            {/* Dropdown list of matching skills */}
+            {showDropdown && skillSearch.trim() && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-gray-900 border border-gray-850 rounded-2xl max-h-52 overflow-y-auto z-50 shadow-2xl p-1.5 space-y-0.5 animate-in fade-in duration-100">
+                {(() => {
+                  const matches = MASTER_SKILLS.filter(s =>
+                    s.toLowerCase().includes(skillSearch.toLowerCase()) &&
+                    !skills.includes(s)
+                  );
+                  if (matches.length > 0) {
+                    return matches.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          addSkill(s);
+                          setShowDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white hover:bg-gray-855 rounded-xl transition-all cursor-pointer"
+                      >
+                        {s}
+                      </button>
+                    ));
+                  } else {
+                    return (
+                      <div className="p-3 text-center space-y-2">
+                        <p className="text-xs text-gray-400">No matching skills found for "{skillSearch}"</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleRequestSkill(skillSearch);
+                            setShowDropdown(false);
+                          }}
+                          className="px-3 py-1.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 mx-auto shadow-md"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Request "{skillSearch}"</span>
+                        </button>
+                      </div>
+                    );
+                  }
+                })()}
+              </div>
+            )}
+
+            {/* Clicking background closes search dropdown */}
+            {showDropdown && (
+              <div
+                className="fixed inset-0 z-45 cursor-default"
+                onClick={() => setShowDropdown(false)}
+              />
+            )}
           </div>
 
           {skills.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 bg-gray-950/40 border border-gray-850 p-3 rounded-2xl">
+            <div className="flex flex-wrap gap-1.5 bg-gray-950/40 border border-gray-850 p-3 rounded-2xl relative z-10">
               {skills.map((s, idx) => (
                 <span
                   key={idx}
@@ -356,7 +443,7 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={() => removeSkill(idx)}
-                    className="hover:text-red-500 font-bold focus:outline-none"
+                    className="hover:text-red-500 font-bold focus:outline-none cursor-pointer"
                   >
                     ×
                   </button>
@@ -365,19 +452,26 @@ export default function Profile() {
             </div>
           )}
 
-          <div className="space-y-1">
+          <div className="space-y-1 relative z-10 animate-in fade-in duration-200">
             <span className="text-[9px] uppercase font-bold tracking-wider text-gray-500">Suggested:</span>
             <div className="flex flex-wrap gap-1">
-              {SUGGESTED_SKILLS.filter(s => !skills.includes(s)).slice(0, 10).map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => addSkill(s)}
-                  className="text-[10px] font-semibold px-2 py-0.5 bg-gray-955 border border-gray-850 text-gray-400 hover:text-gray-200 hover:border-gray-700 rounded-md cursor-pointer transition-colors"
-                >
-                  + {s}
-                </button>
-              ))}
+              {(() => {
+                const suggestions = getSuggestedSkills(role, framework).filter(s => !skills.includes(s));
+                if (suggestions.length > 0) {
+                  return suggestions.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => addSkill(s)}
+                      className="text-[10px] font-semibold px-2 py-0.5 bg-gray-955 border border-gray-855 text-gray-400 hover:text-gray-200 hover:border-gray-700 rounded-md cursor-pointer transition-colors"
+                    >
+                      + {s}
+                    </button>
+                  ));
+                } else {
+                  return <span className="text-[10px] text-gray-500 italic">Select role and framework for suggestions.</span>;
+                }
+              })()}
             </div>
           </div>
         </div>

@@ -29,7 +29,8 @@ export default function FullProfilePopup({ profile, isOpen, onClose }) {
     searching_for,
     looking_for,
     avatar_url,
-    bio
+    bio,
+    framework,
   } = profile;
 
   const handleSubmitReport = async (e) => {
@@ -184,7 +185,7 @@ export default function FullProfilePopup({ profile, isOpen, onClose }) {
               </p>
             </div>
             <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 pt-0.5">
-              <RoleBadge role={role} />
+              <RoleBadge role={role} framework={framework} />
               <LookingForBadge lookingFor={looking_for} />
             </div>
           </div>

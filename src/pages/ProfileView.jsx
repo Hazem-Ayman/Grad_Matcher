@@ -120,7 +120,7 @@ export default function ProfileView() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-            <RoleBadge role={profile.role} />
+            <RoleBadge role={profile.role} framework={profile.framework} />
             <span className="text-xs px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-full font-semibold">
               🎓 Year: {profile.year}
             </span>

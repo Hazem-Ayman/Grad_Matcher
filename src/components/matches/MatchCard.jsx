@@ -20,7 +20,7 @@ export default function MatchCard({ match, currentProfile, onViewContact }) {
 
   if (!profile) return null;
 
-  const { name, university, role, skills, avatar_url } = profile;
+  const { name, university, role, framework, skills, avatar_url } = profile;
 
   const fetchInviteStatus = async () => {
     if (!currentProfile || !profile) return;
@@ -213,7 +213,7 @@ export default function MatchCard({ match, currentProfile, onViewContact }) {
           </div>
           <p className="text-xs text-indigo-400 font-medium truncate">{university}</p>
           <div className="flex flex-wrap items-center gap-1.5">
-            <RoleBadge role={role} />
+            <RoleBadge role={role} framework={framework} />
           </div>
         </div>
       </div>

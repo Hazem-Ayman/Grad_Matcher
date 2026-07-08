@@ -23,6 +23,7 @@ export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
     looking_for,
     avatar_url,
     team,
+    framework,
   } = profile;
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -107,7 +108,7 @@ export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
         {/* Badges */}
         <div className="flex flex-col items-center gap-2">
           <LookingForBadge lookingFor={looking_for} />
-          <RoleBadge role={role} />
+          <RoleBadge role={role} framework={framework} />
         </div>
 
         {/* Project Idea Quote */}
