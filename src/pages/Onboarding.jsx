@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, Check, Upload, User, Sparkles, Phone, Camera, Send, Briefcase, Search, MessageSquare } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Upload, User, Sparkles, Phone, Camera, Send, Briefcase, Search, MessageSquare, Code } from 'lucide-react';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { CS_FIELDS, MASTER_SKILLS, getSuggestedSkills } from '../utils/csFields';
 
