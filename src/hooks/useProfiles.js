@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 
 export function useProfiles(currentProfile) {
@@ -6,6 +6,7 @@ export function useProfiles(currentProfile) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(true);
+  const swipedIdsRef = useRef(new Set());
 
   const fetchMoreProfiles = useCallback(async (existingProfiles = []) => {
     if (!currentProfile) return;
@@ -21,9 +22,19 @@ export function useProfiles(currentProfile) {
 
       if (swipesError) throw swipesError;
 
-      const swipedIds = swipes.map(s => s.swiped_id);
-      // Also exclude currently loaded profiles in state to avoid duplicate fetches
-      const excludedIds = [...swipedIds, currentProfile.id, ...existingProfiles.map(p => p.id)];
+      const dbSwipedIds = swipes.map(s => s.swiped_id);
+      
+      // Combine database swiped IDs, currently loaded profiles, and local swipedIdsRef to exclude them
+      const excludedSet = new Set([
+        ...dbSwipedIds,
+        currentProfile.id,
+        ...existingProfiles.map(p => p.id)
+      ]);
+      
+      // Sync local popped profiles instantly
+      swipedIdsRef.current.forEach(id => excludedSet.add(id));
+
+      const excludedIds = Array.from(excludedSet);
 
       // 2. Fetch profiles
       let query = supabase
@@ -70,6 +81,7 @@ export function useProfiles(currentProfile) {
   useEffect(() => {
     if (currentProfile) {
       setProfiles([]);
+      swipedIdsRef.current.clear();
       setHasMore(true);
       fetchMoreProfiles([]);
     }
@@ -77,6 +89,12 @@ export function useProfiles(currentProfile) {
 
   const popProfile = useCallback(() => {
     setProfiles(prev => {
+      if (prev.length === 0) return prev;
+      
+      const popped = prev[0];
+      // Mark as swiped locally instantly to prevent reappearing during async delay
+      swipedIdsRef.current.add(popped.id);
+
       const nextList = prev.slice(1);
       // Trigger preload when 2 or fewer cards left
       if (nextList.length <= 2 && hasMore && !loading) {
@@ -110,6 +128,7 @@ export function useProfiles(currentProfile) {
         console.error("Error clearing swipes during refresh:", err);
       } finally {
         setProfiles([]);
+        swipedIdsRef.current.clear();
         setHasMore(true);
         setLoading(false);
       }
