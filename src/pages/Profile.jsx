@@ -18,19 +18,19 @@ export default function Profile() {
   const [name, setName] = useState(profile?.name || '');
   const [uniOption, setUniOption] = useState(() => {
     const val = profile?.university || '';
-    if (val === 'Assuit University - General' || val === 'Assuit University - National') {
+    if (val === 'Assuit University' || val === 'Assuit National University') {
       return val;
     }
-    return val ? 'other' : 'Assuit University - General';
+    return val ? 'other' : 'Assuit University';
   });
   const [customUni, setCustomUni] = useState(() => {
     const val = profile?.university || '';
-    if (val === 'Assuit University - General' || val === 'Assuit University - National') {
+    if (val === 'Assuit University' || val === 'Assuit National University') {
       return '';
     }
     return val;
   });
-  const [year, setYear] = useState(profile?.year || '1st');
+  const [year, setYear] = useState(profile?.year || '4th');
   const [bio, setBio] = useState(profile?.bio || '');
 
   const [roles, setRoles] = useState(() => {
@@ -353,8 +353,8 @@ export default function Profile() {
                   onChange={(e) => setUniOption(e.target.value)}
                   className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
                 >
-                  <option value="Assuit University - General">Assuit University - General</option>
-                  <option value="Assuit University - National">Assuit University - National</option>
+                  <option value="Assuit University">Assuit University</option>
+                  <option value="Assuit National University">Assuit National University</option>
                   <option value="other">Others (please specify)</option>
                 </select>
               </div>
@@ -380,11 +380,7 @@ export default function Profile() {
                 onChange={(e) => setYear(e.target.value)}
                 className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
               >
-                <option value="1st">1st Year</option>
-                <option value="2nd">2nd Year</option>
-                <option value="3rd">3rd Year</option>
                 <option value="4th">4th Year</option>
-                <option value="5th">5th Year</option>
               </select>
             </div>
 
