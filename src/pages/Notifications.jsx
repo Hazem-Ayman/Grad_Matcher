@@ -54,7 +54,7 @@ export default function Notifications() {
 
       if (result.type === 'match') {
         setMatchedProfile(targetProfile);
-        setMatchId(result.match.id);
+        setMatchId(result.match?.id || null);
         setIsMatchOpen(true);
         toast.success(`You matched with ${targetProfile.name}! 🎉`, { duration: 2000 });
       } else {

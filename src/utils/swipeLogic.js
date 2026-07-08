@@ -1,14 +1,14 @@
 // Call this after every right swipe
 export async function handleRightSwipe(supabase, currentProfile, targetProfile) {
-  // 1. Record the swipe
-  const { error: swipeError } = await supabase.from('swipes').insert({
+  // 1. Record the swipe (using upsert in case the user has swiped them left/right previously)
+  const { error: swipeError } = await supabase.from('swipes').upsert({
     swiper_id: currentProfile.id,
     swiped_id: targetProfile.id,
     direction: 'right'
-  });
+  }, { onConflict: 'swiper_id,swiped_id' });
 
   if (swipeError) {
-    console.error("Error inserting swipe:", swipeError);
+    console.error("Error inserting/updating swipe:", swipeError);
     throw swipeError;
   }
 
@@ -21,12 +21,16 @@ export async function handleRightSwipe(supabase, currentProfile, targetProfile) 
     .eq('direction', 'right')
     .maybeSingle(); // Use maybeSingle to prevent 406/PGRST116 errors if not found
 
-  // Check if match already exists in either direction
-  const { data: existingMatch } = await supabase
+  // Check if match already exists in either direction (simplified to avoid complex PostgREST logical operator failures)
+  const { data: matchesList } = await supabase
     .from('matches')
     .select('*')
-    .or(`and(user1_id.eq.${currentProfile.id},user2_id.eq.${targetProfile.id}),and(user1_id.eq.${targetProfile.id},user2_id.eq.${currentProfile.id})`)
-    .maybeSingle();
+    .or(`user1_id.eq.${currentProfile.id},user2_id.eq.${currentProfile.id}`);
+
+  const existingMatch = (matchesList || []).find(m => 
+    (m.user1_id === currentProfile.id && m.user2_id === targetProfile.id) ||
+    (m.user1_id === targetProfile.id && m.user2_id === currentProfile.id)
+  );
 
   if (theirSwipe) {
     // Mutual match!

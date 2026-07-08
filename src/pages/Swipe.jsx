@@ -53,7 +53,7 @@ export default function Swipe() {
       if (result.type === 'match') {
         // Show celebration match modal
         setMatchedProfile(targetProfile);
-        setMatchId(result.match.id);
+        setMatchId(result.match?.id || null);
         setIsMatchOpen(true);
         toast.success("It's a Match! 🎉", { duration: 2000 });
       } else {
