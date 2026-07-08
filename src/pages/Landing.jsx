@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Flame, Users, Zap, Compass } from 'lucide-react';
+import { Flame, ArrowRight, Shield, Sparkles, Users, Heart, GraduationCap } from 'lucide-react';
+import { Zap, Compass } from 'lucide-react';
 
 export default function Landing() {
   const { user, profile, loading } = useAuth();
@@ -27,7 +28,7 @@ export default function Landing() {
       <header className="max-w-6xl w-full mx-auto px-6 py-6 flex items-center justify-between z-10">
         <div className="flex items-center space-x-2">
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-600/30">
-            G
+            <GraduationCap className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             GradMatch
@@ -46,8 +47,8 @@ export default function Landing() {
         {/* Left column: Tagline & description */}
         <div className="flex-1 text-center lg:text-left space-y-6 lg:max-w-xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold tracking-wide">
-            <Flame className="w-3.5 h-3.5" />
-            <span>Tinder for Graduation Projects</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Meet your brain alike</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-white">

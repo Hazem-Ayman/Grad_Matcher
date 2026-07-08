@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-hot-toast';
-import { Flame, Mail, Lock, LogIn, UserPlus } from 'lucide-react';
+import { Flame, Mail, Lock, LogIn, UserPlus, GraduationCap } from 'lucide-react';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function Auth() {
@@ -121,8 +121,8 @@ export default function Auth() {
       <div className="w-full max-w-md space-y-8 z-10">
         {/* Logo Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-650 text-white font-bold text-2xl shadow-xl shadow-indigo-600/20">
-            G
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-650 text-white shadow-xl shadow-indigo-600/20">
+            <GraduationCap className="w-6 h-6 text-white" />
           </div>
           <h2 className="text-3xl font-extrabold text-white tracking-wide">
             {mode === 'signup' ? 'Create an account' : 'Welcome back'}

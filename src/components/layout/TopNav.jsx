@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Flame, Heart, Bell, User, LogOut, Users } from 'lucide-react';
+import { Flame, Heart, Bell, User, LogOut, Users, GraduationCap } from 'lucide-react';
 
 export default function TopNav({ unreadNotificationsCount, onSignOut }) {
   return (
@@ -9,7 +9,7 @@ export default function TopNav({ unreadNotificationsCount, onSignOut }) {
         {/* Logo */}
         <Link to="/swipe" className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-600/30">
-            G
+            <GraduationCap className="w-4.5 h-4.5 text-white" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             GradMatch
