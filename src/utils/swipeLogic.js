@@ -52,41 +52,18 @@ export async function handleRightSwipe(supabase, currentProfile, targetProfile) 
         type: 'new_match',
         from_user_id: currentProfile.id
       });
+      // Also notify the current user that they matched
+      await supabase.from('notifications').insert({
+        user_id: currentProfile.id,
+        type: 'new_match',
+        from_user_id: targetProfile.id
+      });
     }
 
     return { type: 'match', match, contactInfo: getContactInfo(targetProfile) };
   }
 
-  if (targetProfile.contact_mode === 'open') {
-    // Target is open-contact mode (matches immediately, but NOT a mutual match!)
-    let match = existingMatch;
-    if (!match) {
-      const { data: newMatch, error: matchError } = await supabase
-        .from('matches')
-        .insert({ user1_id: currentProfile.id, user2_id: targetProfile.id })
-        .select()
-        .single();
-
-      if (matchError) {
-        console.error("Error creating match:", matchError);
-      } else {
-        match = newMatch;
-      }
-    }
-
-    // Only notify them if match didn't exist before to prevent double notifications
-    if (!existingMatch) {
-      await supabase.from('notifications').insert({
-        user_id: targetProfile.id,
-        type: 'contact_revealed',
-        from_user_id: currentProfile.id
-      });
-    }
-
-    return { type: 'open', match, contactInfo: getContactInfo(targetProfile) };
-  }
-
-  // contact_mode === 'match'
+  // No mutual swipe yet — notify them that someone liked them
   await supabase.from('notifications').insert({
     user_id: targetProfile.id,
     type: 'liked_you',

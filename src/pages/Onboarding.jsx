@@ -31,9 +31,8 @@ export default function Onboarding() {
 
   const [projectIdea, setProjectIdea] = useState(profile?.project_idea || '');
   const [searchingFor, setSearchingFor] = useState(profile?.searching_for || '');
-  const [lookingFor, setLookingFor] = useState(profile?.looking_for || 'match');
-
-  const [contactMode, setContactMode] = useState(profile?.contact_mode || 'match');
+  const [lookingFor, setLookingFor] = useState(profile?.looking_for || 'full_team');
+  const [contactMode] = useState('match');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [instagram, setInstagram] = useState(profile?.instagram || '');
   const [telegram, setTelegram] = useState(profile?.telegram || '');
@@ -60,8 +59,6 @@ export default function Onboarding() {
         toast.error("Please add a brief description of what you want to achieve with this project.");
         return;
       }
-    }
-    if (step === 4) {
       if (!phone.trim() && !instagram.trim() && !telegram.trim() && !linkedin.trim()) {
         toast.error("Please provide at least one contact method.");
         return;
@@ -212,7 +209,7 @@ export default function Onboarding() {
     );
   }
 
-  const stepPercentage = (step / 5) * 100;
+  const stepPercentage = (step / 4) * 100;
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col justify-center items-center px-4 py-8">
@@ -221,7 +218,7 @@ export default function Onboarding() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs text-gray-500 font-bold tracking-wider uppercase">
             <span>Progress Setup</span>
-            <span>Step {step} of 5</span>
+            <span>Step {step} of 4</span>
           </div>
           <div className="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
             <div
@@ -477,59 +474,10 @@ export default function Onboarding() {
                   </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* STEP 4: Contact Mode */}
-          {step === 4 && (
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-white">How do you want to connect?</h2>
-                <p className="text-xs text-gray-400">Select your profile privacy mode and supply your contact tags.</p>
-              </div>
-
-              {/* Privacy mode options */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <label
-                  onClick={() => setContactMode('open')}
-                  className={`p-4 border rounded-2xl text-left cursor-pointer transition-all flex flex-col justify-between h-32 ${
-                    contactMode === 'open'
-                      ? 'bg-indigo-655/10 border-indigo-500 text-white'
-                      : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-750'
-                  }`}
-                >
-                  <div>
-                    <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-                      <span>⚡</span> Direct Contact
-                    </h3>
-                    <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">
-                      Anyone who likes my profile can see my contact handles and phone number immediately. Choosing this means your details will be shown to anyone who swipes right on you, even before you like them back.
-                    </p>
-                  </div>
-                </label>
-
-                <label
-                  onClick={() => setContactMode('match')}
-                  className={`p-4 border rounded-2xl text-left cursor-pointer transition-all flex flex-col justify-between h-32 ${
-                    contactMode === 'match'
-                      ? 'bg-indigo-655/10 border-indigo-500 text-white'
-                      : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-750'
-                  }`}
-                >
-                  <div>
-                    <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-                      <span>🔒</span> Match First
-                    </h3>
-                    <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">
-                      I get notified when someone likes me. I choose who to reveal my info to.
-                    </p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Contact fields inputs */}
-              <div className="space-y-3 pt-2">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Provide Contact Info (At least one required)</span>
+              {/* Contact fields */}
+              <div className="space-y-3 pt-2 border-t border-gray-800">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Your Contact Info (At least one required)</span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="relative">
@@ -580,8 +528,9 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* STEP 5: Photo upload */}
-          {step === 5 && (
+
+          {/* STEP 4: Photo upload */}
+          {step === 4 && (
             <div className="space-y-4 text-center flex flex-col items-center">
               <div className="space-y-1">
                 <h2 className="text-2xl font-bold text-white">Add a profile photo</h2>
@@ -628,7 +577,7 @@ export default function Onboarding() {
               <div></div>
             )}
 
-            {step < 5 ? (
+            {step < 4 ? (
               <button
                 type="button"
                 onClick={handleNext}

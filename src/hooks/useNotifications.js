@@ -7,7 +7,7 @@ export function useNotifications(currentProfile) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchNotifications = useCallback(async () => {
-    if (!currentProfile) return;
+    if (!currentProfile?.id) return;
 
     try {
       const { data, error } = await supabase
@@ -42,7 +42,7 @@ export function useNotifications(currentProfile) {
   }, [currentProfile]);
 
   useEffect(() => {
-    if (!currentProfile) return;
+    if (!currentProfile?.id) return;
 
     fetchNotifications();
 
@@ -135,7 +135,7 @@ export function useNotifications(currentProfile) {
   }, []);
 
   const markAllAsRead = useCallback(async () => {
-    if (!currentProfile) return;
+    if (!currentProfile?.id) return;
     try {
       const { error } = await supabase
         .from('notifications')

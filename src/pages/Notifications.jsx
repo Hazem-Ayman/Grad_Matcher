@@ -13,7 +13,8 @@ import { toast } from 'react-hot-toast';
 
 export default function Notifications() {
   const { profile: currentProfile } = useAuth();
-  const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useOutletContext().notifications;
+  const { notifications: notificationsCtx = {} } = useOutletContext() || {};
+  const { notifications = [], unreadCount = 0, loading = true, markAsRead, markAllAsRead } = notificationsCtx;
   const navigate = useNavigate();
 
   // Selected profile for liked_you notifications details modal

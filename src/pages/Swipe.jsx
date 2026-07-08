@@ -10,26 +10,6 @@ import SwipeEmpty from '../components/swipe/SwipeEmpty';
 import MatchModal from '../components/matches/MatchModal';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { toast } from 'react-hot-toast';
-import { PhoneCall, ShieldCheck, X, Camera, Briefcase, Send, Copy, Check } from 'lucide-react';
-
-const CopyButton = ({ text }) => {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = (e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  return (
-    <button
-      onClick={handleCopy}
-      className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition-colors cursor-pointer ml-1.5 flex-shrink-0"
-      title="Copy to clipboard"
-    >
-      {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-    </button>
-  );
-};
 
 export default function Swipe() {
   const { profile: currentProfile } = useAuth();
@@ -39,10 +19,6 @@ export default function Swipe() {
   const [isMatchOpen, setIsMatchOpen] = useState(false);
   const [matchedProfile, setMatchedProfile] = useState(null);
   const [matchId, setMatchId] = useState(null);
-
-  // Direct Contact Revealed Modal
-  const [isContactOpen, setIsContactOpen] = useState(false);
-  const [revealedProfile, setRevealedProfile] = useState(null);
 
   const activeProfile = profiles[0];
 
@@ -74,12 +50,7 @@ export default function Swipe() {
     try {
       const result = await handleRightSwipe(supabase, currentProfile, targetProfile);
 
-      if (result.type === 'open') {
-        // Show contact info immediately
-        setRevealedProfile(targetProfile);
-        setIsContactOpen(true);
-        toast.success(`${targetProfile.name} is open to direct contact! ⚡`);
-      } else if (result.type === 'match') {
+      if (result.type === 'match') {
         // Show celebration match modal
         setMatchedProfile(targetProfile);
         setMatchId(result.match.id);
@@ -131,84 +102,6 @@ export default function Swipe() {
         matchedProfile={matchedProfile}
         matchId={matchId}
       />
-
-      {/* Direct Contact Modal (contact_mode = 'open') */}
-      {isContactOpen && revealedProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-gray-950/80 backdrop-blur-md"
-            onClick={() => setIsContactOpen(false)}
-          />
-          <div className="relative bg-gray-900 border border-gray-800 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl p-6 text-center space-y-5 transform transition-all animate-in fade-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setIsContactOpen(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-white hover:bg-gray-800 p-1.5 rounded-full transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="text-3xl">⚡</div>
-            <div className="space-y-1">
-              <h3 className="text-xl font-bold text-white">Direct Contact Available!</h3>
-              <p className="text-xs text-gray-400">
-                {revealedProfile.name} has shared their contact details openly. Feel free to connect directly.
-              </p>
-            </div>
-
-            <div className="bg-gray-950/60 border border-gray-805 rounded-2xl p-4 text-left space-y-3">
-              <div className="flex items-center gap-1.5 border-b border-gray-800 pb-2 mb-1">
-                <ShieldCheck className="w-4 h-4 text-indigo-400" />
-                <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Contact details</span>
-              </div>
-              <div className="grid grid-cols-1 gap-2 text-sm text-gray-350">
-                {revealedProfile.phone && (
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs text-gray-400"><PhoneCall className="w-3.5 h-3.5" /> Phone:</span>
-                    <div className="flex items-center min-w-0">
-                      <span className="font-semibold text-white select-all truncate max-w-[150px]">{revealedProfile.phone}</span>
-                      <CopyButton text={revealedProfile.phone} />
-                    </div>
-                  </div>
-                )}
-                {revealedProfile.instagram && (
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs text-gray-400"><Camera className="w-3.5 h-3.5" /> Instagram:</span>
-                    <div className="flex items-center min-w-0">
-                      <span className="font-semibold text-white select-all truncate max-w-[150px]">{revealedProfile.instagram}</span>
-                      <CopyButton text={revealedProfile.instagram} />
-                    </div>
-                  </div>
-                )}
-                {revealedProfile.telegram && (
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs text-gray-400"><Send className="w-3.5 h-3.5" /> Telegram:</span>
-                    <div className="flex items-center min-w-0">
-                      <span className="font-semibold text-white select-all truncate max-w-[150px]">{revealedProfile.telegram}</span>
-                      <CopyButton text={revealedProfile.telegram} />
-                    </div>
-                  </div>
-                )}
-                {revealedProfile.linkedin && (
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs text-gray-400"><Briefcase className="w-3.5 h-3.5" /> LinkedIn:</span>
-                    <div className="flex items-center min-w-0">
-                      <span className="font-semibold text-white select-all truncate max-w-[120px]">{revealedProfile.linkedin}</span>
-                      <CopyButton text={revealedProfile.linkedin} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsContactOpen(false)}
-              className="w-full py-3 bg-indigo-650 hover:bg-indigo-700 text-white rounded-2xl text-xs font-semibold tracking-wide shadow-md active:scale-95 cursor-pointer"
-            >
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

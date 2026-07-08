@@ -9,7 +9,7 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 export default function AppShell() {
   const { user, profile, loading, signOut } = useAuth();
   const location = useLocation();
-  const notifications = useNotifications(profile);
+  const notifications = useNotifications(loading ? null : profile);
 
   if (loading) {
     return (

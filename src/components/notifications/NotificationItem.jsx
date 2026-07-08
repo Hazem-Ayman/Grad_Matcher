@@ -1,7 +1,7 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import Avatar from '../ui/Avatar';
-import { Heart, UserCheck, Flame, Zap } from 'lucide-react';
+import { Heart, UserCheck, Flame } from 'lucide-react';
 
 export default function NotificationItem({ notification, onClick, onAcceptInvite, onDeclineInvite }) {
   const { type, read, created_at, from_user, team_invite } = notification;
@@ -35,15 +35,6 @@ export default function NotificationItem({ notification, onClick, onAcceptInvite
         </span>
       ),
     },
-    contact_revealed: {
-      icon: Zap,
-      iconColor: 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20',
-      text: (
-        <span>
-          <strong className="text-white font-semibold">{from_user?.name || 'Someone'}</strong> viewed your contact info ⚡
-        </span>
-      ),
-    },
     team_invite: {
       icon: UserCheck,
       iconColor: 'text-blue-500 bg-blue-500/10 border border-blue-500/20',
@@ -55,8 +46,9 @@ export default function NotificationItem({ notification, onClick, onAcceptInvite
     },
   };
 
+
   const currentConfig = config[type] || {
-    icon: Zap,
+    icon: Flame,
     iconColor: 'text-gray-400 bg-gray-800',
     text: <span>Notification received</span>,
   };

@@ -6,7 +6,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Avatar from '../components/ui/Avatar';
 import { 
   Save, EyeOff, User, Phone, Camera, Send, Briefcase, Code, 
-  BookOpen, Sparkles, Shield, Upload, Info
+  BookOpen, Sparkles, Shield, Upload
 } from 'lucide-react';
 
 const SUGGESTED_SKILLS = [
@@ -33,7 +33,7 @@ export default function Profile() {
   const [searchingFor, setSearchingFor] = useState(profile?.searching_for || '');
   const [lookingFor, setLookingFor] = useState(profile?.looking_for || 'match');
 
-  const [contactMode, setContactMode] = useState(profile?.contact_mode || 'match');
+
   const [phone, setPhone] = useState(profile?.phone || '');
   const [instagram, setInstagram] = useState(profile?.instagram || '');
   const [telegram, setTelegram] = useState(profile?.telegram || '');
@@ -152,7 +152,7 @@ export default function Profile() {
           project_idea: projectIdea.trim() || null,
           searching_for: searchingFor.trim() || null,
           looking_for: lookingFor,
-          contact_mode: contactMode,
+          contact_mode: 'match',
           phone: phone.trim() || null,
           instagram: instagram.trim() || null,
           telegram: telegram.trim() || null,
@@ -448,39 +448,6 @@ export default function Profile() {
           <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-850 pb-2 flex items-center gap-1.5">
             <Shield className="w-4 h-4 text-indigo-400" /> Privacy & Social tags
           </h3>
-
-          {/* Contact mode selector */}
-          <div className="space-y-1">
-            <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Contact Mode Privacy</label>
-            <div className="grid grid-cols-2 gap-2 bg-gray-950 p-1 rounded-2xl border border-gray-850">
-              <button
-                type="button"
-                onClick={() => setContactMode('open')}
-                className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  contactMode === 'open' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400'
-                }`}
-              >
-                ⚡ Open Mode
-              </button>
-              <button
-                type="button"
-                onClick={() => setContactMode('match')}
-                className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  contactMode === 'match' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-400'
-                }`}
-              >
-                🔒 Match First
-              </button>
-            </div>
-            <div className="text-[10px] text-gray-500 leading-normal flex items-start gap-1 p-2 bg-gray-950/40 rounded-xl mt-1 border border-gray-850">
-              <Info className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />
-              <span>
-                {contactMode === 'open' 
-                  ? 'Open Mode allows anyone who likes your card to view contact details instantly.' 
-                  : 'Match First keeps contact credentials hidden until you both swipe right.'}
-              </span>
-            </div>
-          </div>
 
           {/* Handles inputs */}
           <div className="space-y-3 pt-2">
