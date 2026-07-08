@@ -55,9 +55,18 @@ export function useMatches(currentProfile) {
   }, [currentProfile]);
 
   useEffect(() => {
-    if (currentProfile) {
-      fetchMatches();
-    }
+    if (!currentProfile) return;
+
+    fetchMatches();
+
+    // Poll for new matches every 20 seconds on free tier
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchMatches();
+      }
+    }, 20000);
+
+    return () => clearInterval(interval);
   }, [currentProfile, fetchMatches]);
 
   return {

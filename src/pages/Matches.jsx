@@ -5,7 +5,8 @@ import MatchCard from '../components/matches/MatchCard';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import EmptyState from '../components/ui/EmptyState';
 import { useNavigate } from 'react-router-dom';
-import { X, ShieldCheck, PhoneCall, Camera, Briefcase, Send, Compass, Copy, Check } from 'lucide-react';
+import { X, ShieldCheck, PhoneCall, Camera, Briefcase, Send, Compass, Copy, Check, RefreshCw } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -28,9 +29,10 @@ const CopyButton = ({ text }) => {
 
 export default function Matches() {
   const { profile: currentProfile } = useAuth();
-  const { matches, loading, error } = useMatches(currentProfile);
+  const { matches, loading, error, refetch } = useMatches(currentProfile);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
 
   const handleOpenContact = (profile) => {
@@ -38,7 +40,14 @@ export default function Matches() {
     setIsContactOpen(true);
   };
 
-  if (loading) {
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+    toast.success("Matches updated!", { id: 'matches-refresh' });
+  };
+
+  if (loading && matches.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
         <LoadingSpinner size="md" message="Loading matches..." />
@@ -49,9 +58,25 @@ export default function Matches() {
   return (
     <div className="flex-1 flex flex-col space-y-6 max-w-4xl mx-auto w-full py-2">
       {/* Header Info */}
-      <div className="space-y-1 text-center md:text-left">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-wide">Your Matches</h1>
-        <p className="text-xs text-gray-400">Teammates who swiped right on your profile. Connect with them below!</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-900 pb-4">
+        <div className="text-center sm:text-left space-y-1">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-wide">Your Matches</h1>
+          <p className="text-xs text-gray-400">Teammates who swiped right on your profile. Connect with them below!</p>
+        </div>
+
+        <div className="flex items-center justify-center sm:justify-end gap-2.5">
+          <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider hidden sm:inline">
+            List polls automatically
+          </span>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gray-900 border border-gray-805 hover:border-gray-700 text-gray-300 hover:text-white rounded-xl text-xs font-semibold transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {matches.length > 0 ? (
