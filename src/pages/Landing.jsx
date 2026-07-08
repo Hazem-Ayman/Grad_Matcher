@@ -1,8 +1,22 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { Flame, Users, Zap, Compass } from 'lucide-react';
 
 export default function Landing() {
+  const { user, profile, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (profile?.onboarding_complete) {
+        navigate('/swipe', { replace: true });
+      } else {
+        navigate('/onboarding', { replace: true });
+      }
+    }
+  }, [user, profile, loading, navigate]);
+
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col justify-between overflow-x-hidden relative">
       {/* Background radial glow */}

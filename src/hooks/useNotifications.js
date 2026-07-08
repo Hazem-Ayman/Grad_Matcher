@@ -22,8 +22,7 @@ export function useNotifications(currentProfile) {
             id,
             status,
             team:team_id (
-              id,
-              project_idea
+              id
             )
           )
         `)
@@ -74,8 +73,7 @@ export function useNotifications(currentProfile) {
                   id,
                   status,
                   team:team_id (
-                    id,
-                    project_idea
+                    id
                   )
                 `)
                 .eq('id', payload.new.team_invite_id)
