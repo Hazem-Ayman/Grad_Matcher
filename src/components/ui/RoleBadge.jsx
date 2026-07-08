@@ -30,15 +30,56 @@ const roleNames = {
   other:          'Other Field',
 };
 
+import { CS_FIELDS } from '../../utils/csFields';
+
 export default function RoleBadge({ role, framework }) {
-  const normalizedRole = role ? role.toLowerCase() : 'other';
-  const colorClass = roleColors[normalizedRole] || roleColors.other;
-  const name = roleNames[normalizedRole] || role || 'Other';
+  const roleList = role ? role.split(',').map(r => r.trim()).filter(Boolean) : ['other'];
+  const fwList = framework ? framework.split(',').map(f => f.trim()).filter(Boolean) : [];
+
+  const matchedFrameworks = new Set();
+  const badges = [];
+
+  roleList.forEach(r => {
+    const normR = r.toLowerCase();
+    const fieldConfig = CS_FIELDS.find(f => f.id === normR);
+    
+    // Find frameworks that belong to this CS field
+    const fieldFws = fwList.filter(fw => {
+      return fieldConfig?.frameworks.includes(fw);
+    });
+
+    fieldFws.forEach(fw => matchedFrameworks.add(fw));
+
+    const name = roleNames[normR] || r || 'Other';
+    const colorClass = roleColors[normR] || roleColors.other;
+
+    if (fieldFws.length > 0) {
+      fieldFws.forEach(fw => {
+        badges.push({ label: `${name} • ${fw}`, colorClass });
+      });
+    } else {
+      badges.push({ label: name, colorClass });
+    }
+  });
+
+  // leftover frameworks
+  fwList.forEach(fw => {
+    if (!matchedFrameworks.has(fw)) {
+      badges.push({ label: fw, colorClass: roleColors.other });
+    }
+  });
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${colorClass}`}>
-      {name}{framework ? ` • ${framework}` : ''}
-    </span>
+    <div className="flex flex-wrap gap-1">
+      {badges.map((badge, idx) => (
+        <span
+          key={idx}
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold tracking-wide ${badge.colorClass}`}
+        >
+          {badge.label}
+        </span>
+      ))}
+    </div>
   );
 }
 export { roleNames };

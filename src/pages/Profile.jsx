@@ -16,12 +16,71 @@ export default function Profile() {
 
   // Form States
   const [name, setName] = useState(profile?.name || '');
-  const [university, setUniversity] = useState(profile?.university || '');
+  const [uniOption, setUniOption] = useState(() => {
+    const val = profile?.university || '';
+    if (val === 'Assuit University - General' || val === 'Assuit University - National') {
+      return val;
+    }
+    return val ? 'other' : 'Assuit University - General';
+  });
+  const [customUni, setCustomUni] = useState(() => {
+    const val = profile?.university || '';
+    if (val === 'Assuit University - General' || val === 'Assuit University - National') {
+      return '';
+    }
+    return val;
+  });
   const [year, setYear] = useState(profile?.year || '1st');
   const [bio, setBio] = useState(profile?.bio || '');
 
-  const [role, setRole] = useState(profile?.role || 'frontend');
-  const [framework, setFramework] = useState(profile?.framework || '');
+  const [roles, setRoles] = useState(() => {
+    if (!profile?.role) return [];
+    return profile.role.split(',').map(r => r.trim()).filter(Boolean);
+  });
+  const [frameworks, setFrameworks] = useState(() => {
+    if (!profile?.framework) return [];
+    return profile.framework.split(',').map(f => f.trim()).filter(Boolean);
+  });
+
+  const handleToggleRole = (roleId) => {
+    setRoles(prev => {
+      let next;
+      if (prev.includes(roleId)) {
+        next = prev.filter(r => r !== roleId);
+      } else {
+        if (prev.length >= 3) {
+          toast.error("You can select up to 3 CS fields.");
+          return prev;
+        }
+        next = [...prev, roleId];
+      }
+
+      const nextFwSet = new Set();
+      next.forEach(rId => {
+        const field = CS_FIELDS.find(f => f.id === rId);
+        if (field) {
+          field.frameworks.forEach(fw => nextFwSet.add(fw));
+        }
+      });
+      setFrameworks(prevFws => prevFws.filter(fw => nextFwSet.has(fw)));
+
+      return next;
+    });
+  };
+
+  const handleToggleFramework = (fw) => {
+    setFrameworks(prev => {
+      if (prev.includes(fw)) {
+        return prev.filter(f => f !== fw);
+      } else {
+        if (prev.length >= 3) {
+          toast.error("You can select up to 3 frameworks.");
+          return prev;
+        }
+        return [...prev, fw];
+      }
+    });
+  };
   const [skills, setSkills] = useState(profile?.skills || []);
   const [skillSearch, setSkillSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -114,16 +173,17 @@ export default function Profile() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !university.trim()) {
+    const finalUniversity = uniOption === 'other' ? customUni.trim() : uniOption;
+    if (!name.trim() || !finalUniversity) {
       toast.error("Name and University fields are required.");
       return;
     }
-    if (!role) {
-      toast.error("Please select a primary CS field.");
+    if (roles.length === 0) {
+      toast.error("Please select at least one CS field.");
       return;
     }
-    if (!framework) {
-      toast.error("Please select a framework/primary tech.");
+    if (frameworks.length === 0) {
+      toast.error("Please select at least one framework/primary tech.");
       return;
     }
     if (skills.length === 0) {
@@ -163,11 +223,11 @@ export default function Profile() {
         .from('profiles')
         .update({
           name: name.trim(),
-          university: university.trim(),
+          university: finalUniversity,
           year,
           bio: bio.trim() || null,
-          role,
-          framework: framework || null,
+          role: roles.join(','),
+          framework: frameworks.join(',') || null,
           skills,
           project_idea: projectIdea.trim() || null,
           searching_for: searchingFor.trim() || null,
@@ -285,15 +345,32 @@ export default function Profile() {
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">University</label>
-              <input
-                type="text"
-                value={university}
-                onChange={(e) => setUniversity(e.target.value)}
-                className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
-                required
-              />
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">University</label>
+                <select
+                  value={uniOption}
+                  onChange={(e) => setUniOption(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
+                >
+                  <option value="Assuit University - General">Assuit University - General</option>
+                  <option value="Assuit University - National">Assuit University - National</option>
+                  <option value="other">Others (please specify)</option>
+                </select>
+              </div>
+
+              {uniOption === 'other' && (
+                <div className="space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Specify University Name</label>
+                  <input
+                    type="text"
+                    value={customUni}
+                    onChange={(e) => setCustomUni(e.target.value)}
+                    placeholder="Write your university name..."
+                    className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -311,36 +388,68 @@ export default function Profile() {
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">CS Field / Role</label>
-              <select
-                value={role}
-                onChange={(e) => {
-                  setRole(e.target.value);
-                  setFramework(''); // Reset framework selection on role change
-                }}
-                className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
-              >
-                <option value="">-- Select CS Field --</option>
-                {CS_FIELDS.map(f => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </select>
+            <div className="space-y-1.5 col-span-1 sm:col-span-2 pt-2 border-t border-gray-855">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">CS Fields (Select up to 3)</label>
+                <span className="text-[10px] text-indigo-400 font-bold uppercase">{roles.length}/3 selected</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {CS_FIELDS.map((field) => {
+                  const isSelected = roles.includes(field.id);
+                  return (
+                    <button
+                      key={field.id}
+                      type="button"
+                      onClick={() => handleToggleRole(field.id)}
+                      className={`px-3 py-2 border text-xs font-bold rounded-2xl cursor-pointer text-center transition-all ${
+                        isSelected
+                          ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-650/20'
+                          : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-750'
+                      }`}
+                    >
+                      {field.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {role && (
-              <div className="space-y-1 animate-in fade-in duration-200">
-                <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Framework / Primary Tech</label>
-                <select
-                  value={framework}
-                  onChange={(e) => setFramework(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
-                >
-                  <option value="">-- Select Framework --</option>
-                  {CS_FIELDS.find(f => f.id === role)?.frameworks.map(fw => (
-                    <option key={fw} value={fw}>{fw}</option>
-                  ))}
-                </select>
+            {roles.length > 0 && (
+              <div className="space-y-2 col-span-1 sm:col-span-2 pt-2 animate-in fade-in duration-200">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Frameworks / Primary Tech (Select up to 3)</label>
+                  <span className="text-[10px] text-indigo-400 font-bold uppercase">{frameworks.length}/3 selected</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(() => {
+                    const fwSet = new Set();
+                    roles.forEach(roleId => {
+                      const field = CS_FIELDS.find(f => f.id === roleId);
+                      if (field) {
+                        field.frameworks.forEach(fw => fwSet.add(fw));
+                      }
+                    });
+                    const availableFrameworks = Array.from(fwSet);
+                    if (availableFrameworks.length === 0) return null;
+                    return availableFrameworks.map((fw) => {
+                      const isSelected = frameworks.includes(fw);
+                      return (
+                        <button
+                          key={fw}
+                          type="button"
+                          onClick={() => handleToggleFramework(fw)}
+                          className={`px-2 py-2 border text-xs font-semibold rounded-xl cursor-pointer text-center transition-all ${
+                            isSelected
+                              ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-md'
+                              : 'bg-gray-950 border-gray-855 text-gray-400 hover:border-gray-800'
+                          }`}
+                        >
+                          {fw}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
               </div>
             )}
           </div>
@@ -456,7 +565,7 @@ export default function Profile() {
             <span className="text-[9px] uppercase font-bold tracking-wider text-gray-500">Suggested:</span>
             <div className="flex flex-wrap gap-1">
               {(() => {
-                const suggestions = getSuggestedSkills(role, framework).filter(s => !skills.includes(s));
+                const suggestions = getSuggestedSkills(roles, frameworks).filter(s => !skills.includes(s));
                 if (suggestions.length > 0) {
                   return suggestions.map(s => (
                     <button

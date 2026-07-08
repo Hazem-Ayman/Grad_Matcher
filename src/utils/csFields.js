@@ -172,73 +172,85 @@ export const MASTER_SKILLS = [
   'Low-Power Optimization'
 ].sort();
 
-export function getSuggestedSkills(role, framework) {
+export function getSuggestedSkills(roles, frameworks) {
   const suggestions = new Set();
 
+  // Normalize inputs (string CSV or arrays)
+  const roleList = Array.isArray(roles)
+    ? roles
+    : (roles ? roles.split(',').map(r => r.trim()).filter(Boolean) : []);
+    
+  const fwList = Array.isArray(frameworks)
+    ? frameworks
+    : (frameworks ? frameworks.split(',').map(f => f.trim()).filter(Boolean) : []);
+
   // Add role-based defaults first
-  if (role === 'frontend' || role === 'fullstack') {
-    suggestions.add('Responsive Web Design');
-    suggestions.add('Git & Version Control');
-    suggestions.add('State Management (Redux/Zustand)');
-    suggestions.add('RESTful APIs');
-    suggestions.add('TypeScript');
-  }
-  if (role === 'backend' || role === 'fullstack') {
-    suggestions.add('Database Schema Design');
-    suggestions.add('RESTful APIs');
-    suggestions.add('Authentication & Authorization');
-    suggestions.add('Git & Version Control');
-    suggestions.add('SQL Queries');
-  }
-  if (role === 'ml') {
-    suggestions.add('Deep Learning');
-    suggestions.add('Data Preprocessing & Cleaning');
-    suggestions.add('Model Training & Evaluation');
-    suggestions.add('Data Structures & Algorithms');
-  }
-  if (role === 'datascience') {
-    suggestions.add('Data Visualization');
-    suggestions.add('Statistical Analysis');
-    suggestions.add('SQL Queries');
-    suggestions.add('ETL Pipelines');
-  }
-  if (role === 'mobile') {
-    suggestions.add('Mobile App Lifecycle');
-    suggestions.add('Push Notifications');
-    suggestions.add('Local DB Storage (SQLite/Room)');
-    suggestions.add('Git & Version Control');
-  }
-  if (role === 'cybersecurity') {
-    suggestions.add('Penetration Testing');
-    suggestions.add('Network Traffic Analysis');
-    suggestions.add('Cryptography');
-    suggestions.add('Linux Administration');
-  }
-  if (role === 'devops') {
-    suggestions.add('CI/CD Pipelines');
-    suggestions.add('Docker Containerization');
-    suggestions.add('Linux Administration');
-    suggestions.add('Git & Version Control');
-  }
-  if (role === 'designer') {
-    suggestions.add('Wireframing');
-    suggestions.add('High-Fidelity Prototyping');
-    suggestions.add('Design Systems');
-    suggestions.add('Usability Testing');
-  }
-  if (role === 'game') {
-    suggestions.add('3D Math & Physics');
-    suggestions.add('Game Loop Optimization');
-    suggestions.add('Design Patterns');
-  }
-  if (role === 'embedded') {
-    suggestions.add('Hardware-Software Interfacing');
-    suggestions.add('SPI/I2C/UART Protocols');
-    suggestions.add('Low-Power Optimization');
-  }
+  roleList.forEach(role => {
+    const r = role.toLowerCase();
+    if (r === 'frontend' || r === 'fullstack') {
+      suggestions.add('Responsive Web Design');
+      suggestions.add('Git & Version Control');
+      suggestions.add('State Management (Redux/Zustand)');
+      suggestions.add('RESTful APIs');
+      suggestions.add('TypeScript');
+    }
+    if (r === 'backend' || r === 'fullstack') {
+      suggestions.add('Database Schema Design');
+      suggestions.add('RESTful APIs');
+      suggestions.add('Authentication & Authorization');
+      suggestions.add('Git & Version Control');
+      suggestions.add('SQL Queries');
+    }
+    if (r === 'ml') {
+      suggestions.add('Deep Learning');
+      suggestions.add('Data Preprocessing & Cleaning');
+      suggestions.add('Model Training & Evaluation');
+      suggestions.add('Data Structures & Algorithms');
+    }
+    if (r === 'datascience') {
+      suggestions.add('Data Visualization');
+      suggestions.add('Statistical Analysis');
+      suggestions.add('SQL Queries');
+      suggestions.add('ETL Pipelines');
+    }
+    if (r === 'mobile') {
+      suggestions.add('Mobile App Lifecycle');
+      suggestions.add('Push Notifications');
+      suggestions.add('Local DB Storage (SQLite/Room)');
+      suggestions.add('Git & Version Control');
+    }
+    if (r === 'cybersecurity') {
+      suggestions.add('Penetration Testing');
+      suggestions.add('Network Traffic Analysis');
+      suggestions.add('Cryptography');
+      suggestions.add('Linux Administration');
+    }
+    if (r === 'devops') {
+      suggestions.add('CI/CD Pipelines');
+      suggestions.add('Docker Containerization');
+      suggestions.add('Linux Administration');
+      suggestions.add('Git & Version Control');
+    }
+    if (r === 'designer') {
+      suggestions.add('Wireframing');
+      suggestions.add('High-Fidelity Prototyping');
+      suggestions.add('Design Systems');
+      suggestions.add('Usability Testing');
+    }
+    if (r === 'game') {
+      suggestions.add('3D Math & Physics');
+      suggestions.add('Game Loop Optimization');
+      suggestions.add('Design Patterns');
+    }
+    if (r === 'embedded') {
+      suggestions.add('Hardware-Software Interfacing');
+      suggestions.add('SPI/I2C/UART Protocols');
+      suggestions.add('Low-Power Optimization');
+    }
+  });
 
   // Framework-specific overrides
-  if (framework) {
+  fwList.forEach(framework => {
     const fw = framework.toLowerCase();
     if (fw.includes('react') || fw.includes('next.js') || fw.includes('t3')) {
       suggestions.add('TypeScript');
@@ -278,7 +290,7 @@ export function getSuggestedSkills(role, framework) {
       suggestions.add('Design Systems');
       suggestions.add('Wireframing');
     }
-  }
+  });
 
   // Fallback if suggestions is empty
   if (suggestions.size === 0) {
