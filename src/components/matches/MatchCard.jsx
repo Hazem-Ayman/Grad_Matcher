@@ -231,51 +231,58 @@ export default function MatchCard({ match, currentProfile, onViewContact }) {
           )}
         </div>
       )}
-
       {/* Team Invite / Teammate Row */}
-      <div className="pt-1">
-        {loadingInvite ? (
-          <div className="flex items-center justify-center py-2 text-xs text-gray-500 font-semibold gap-1.5 bg-gray-950/20 border border-gray-850 rounded-xl">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" /> Checking team status...
-          </div>
-        ) : inviteStatus === 'teammate' ? (
-          <div className="flex items-center justify-center py-2.5 text-xs text-green-400 font-bold gap-1.5 bg-green-500/10 border border-green-500/20 rounded-xl">
-            <UserCheck className="w-3.5 h-3.5 text-green-400" /> Teammate (On your Team)
-          </div>
-        ) : inviteStatus === 'sent' ? (
-          <div className="flex items-center justify-center py-2.5 text-xs text-indigo-400 font-semibold gap-1.5 bg-indigo-500/5 border border-indigo-500/10 rounded-xl opacity-80">
-            Invite Sent (Pending)
-          </div>
-        ) : inviteStatus === 'received' ? (
-          <button
-            onClick={handleAcceptInvite}
-            disabled={actionLoading}
-            className="w-full flex items-center justify-center py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-1.5 transition-all active:scale-98 cursor-pointer border border-indigo-500/30"
-          >
-            {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
-            Accept Team Invitation
-          </button>
-        ) : (
-          <button
-            onClick={handleSendInvite}
-            disabled={actionLoading}
-            className="w-full flex items-center justify-center py-2.5 bg-indigo-550/10 hover:bg-indigo-550/15 text-indigo-400 hover:text-indigo-300 rounded-xl text-xs font-bold gap-1.5 transition-all active:scale-98 cursor-pointer border border-indigo-500/20"
-          >
-            {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
-            Invite to my Team
-          </button>
-        )}
-      </div>
+      {match.isMutual && (
+        <div className="pt-1">
+          {loadingInvite ? (
+            <div className="flex items-center justify-center py-2 text-xs text-gray-500 font-semibold gap-1.5 bg-gray-950/20 border border-gray-855 rounded-xl">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" /> Checking team status...
+            </div>
+          ) : inviteStatus === 'teammate' ? (
+            <div className="flex items-center justify-center py-2.5 text-xs text-green-400 font-bold gap-1.5 bg-green-500/10 border border-green-500/20 rounded-xl">
+              <UserCheck className="w-3.5 h-3.5 text-green-400" /> Teammate (On your Team)
+            </div>
+          ) : inviteStatus === 'sent' ? (
+            <div className="flex items-center justify-center py-2.5 text-xs text-indigo-400 font-semibold gap-1.5 bg-indigo-500/5 border border-indigo-500/10 rounded-xl opacity-80">
+              Invite Sent (Pending)
+            </div>
+          ) : inviteStatus === 'received' ? (
+            <button
+              onClick={handleAcceptInvite}
+              disabled={actionLoading}
+              className="w-full flex items-center justify-center py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-1.5 transition-all active:scale-98 cursor-pointer border border-indigo-500/30"
+            >
+              {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
+              Accept Team Invitation
+            </button>
+          ) : (
+            <button
+              onClick={handleSendInvite}
+              disabled={actionLoading}
+              className="w-full flex items-center justify-center py-2.5 bg-indigo-550/10 hover:bg-indigo-550/15 text-indigo-400 hover:text-indigo-300 rounded-xl text-xs font-bold gap-1.5 transition-all active:scale-98 cursor-pointer border border-indigo-500/20"
+            >
+              {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
+              Invite to my Team
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Buttons */}
       <div className="pt-2 border-t border-gray-800/60">
-        <button
-          onClick={() => onViewContact(profile)}
-          className="flex items-center justify-center gap-1.5 w-full px-3 py-2 bg-gray-900 border border-gray-800 hover:border-gray-700 hover:text-white text-gray-300 rounded-xl text-xs font-semibold tracking-wide transition-all active:scale-95 cursor-pointer"
-        >
-          <PhoneCall className="w-3.5 h-3.5" />
-          <span>Contact</span>
-        </button>
+        {match.isMutual ? (
+          <button
+            onClick={() => onViewContact(profile)}
+            className="flex items-center justify-center gap-1.5 w-full px-3 py-2 bg-gray-900 border border-gray-800 hover:border-gray-700 hover:text-white text-gray-300 rounded-xl text-xs font-semibold tracking-wide transition-all active:scale-95 cursor-pointer"
+          >
+            <PhoneCall className="w-3.5 h-3.5" />
+            <span>Contact Info</span>
+          </button>
+        ) : (
+          <div className="flex items-center justify-center gap-1.5 w-full px-3 py-2 bg-gray-950/40 border border-gray-855 text-gray-500 rounded-xl text-[10px] sm:text-xs font-semibold select-none cursor-not-allowed">
+            <span>🔒 Match Pending (Contact details locked)</span>
+          </div>
+        )}
       </div>
     </div>
   );

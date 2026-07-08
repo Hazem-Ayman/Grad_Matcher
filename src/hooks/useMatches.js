@@ -11,27 +11,45 @@ export function useMatches(currentProfile) {
 
     setLoading(true);
     try {
-      // Find matches where user is user1 or user2
-      const { data: rawMatches, error: matchesError } = await supabase
-        .from('matches')
+      // 1. Fetch all swipes where current user swiped right (liked someone)
+      const { data: swipesList, error: swipesError } = await supabase
+        .from('swipes')
         .select(`
           id,
           created_at,
-          user1:profiles!user1_id (*),
-          user2:profiles!user2_id (*)
+          profile:profiles!swiped_id (*)
         `)
-        .or(`user1_id.eq.${currentProfile.id},user2_id.eq.${currentProfile.id}`)
+        .eq('swiper_id', currentProfile.id)
+        .eq('direction', 'right')
         .order('created_at', { ascending: false });
+
+      if (swipesError) throw swipesError;
+
+      // 2. Fetch matches list to verify which ones are mutual matches
+      const { data: matchesList, error: matchesError } = await supabase
+        .from('matches')
+        .select('user1_id, user2_id')
+        .or(`user1_id.eq.${currentProfile.id},user2_id.eq.${currentProfile.id}`);
 
       if (matchesError) throw matchesError;
 
-      // Transform matches to easily reference the *other* user's profile
-      const transformedMatches = rawMatches.map(m => {
-        const otherProfile = m.user1.id === currentProfile.id ? m.user2 : m.user1;
+      // Build a set of mutual matched profile IDs
+      const mutualSet = new Set();
+      (matchesList || []).forEach(m => {
+        if (m.user1_id === currentProfile.id) {
+          mutualSet.add(m.user2_id);
+        } else {
+          mutualSet.add(m.user1_id);
+        }
+      });
+
+      // Transform swipes to matches list structure with isMutual flag
+      const transformedMatches = (swipesList || []).map(s => {
         return {
-          id: m.id,
-          createdAt: m.created_at,
-          profile: otherProfile,
+          id: s.id,
+          createdAt: s.created_at,
+          profile: s.profile,
+          isMutual: mutualSet.has(s.profile?.id),
         };
       });
 

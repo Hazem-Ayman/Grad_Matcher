@@ -45,7 +45,7 @@ export default function Matches() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-900 pb-4">
         <div className="text-center sm:text-left space-y-1">
           <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-wide">Your Matches</h1>
-          <p className="text-xs text-gray-400">Teammates who swiped right on your profile. Connect with them below!</p>
+          <p className="text-xs text-gray-400">Classmates you liked. Contact details unlock when matches become mutual!</p>
         </div>
 
         <div className="flex items-center justify-center sm:justify-end gap-2.5">
