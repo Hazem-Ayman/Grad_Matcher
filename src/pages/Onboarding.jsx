@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, Check, Upload, User, Sparkles, Phone, Camera, Send, Briefcase, Search, MessageSquare, Code } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Upload, User, Phone, Camera, Send, Briefcase, Search, MessageSquare, Code } from 'lucide-react';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { CS_FIELDS, MASTER_SKILLS, getSuggestedSkills } from '../utils/csFields';
 
@@ -11,13 +11,32 @@ export default function Onboarding() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState(1);
+  // Helper to load onboarding progress draft
+  const getInitialValue = (key, defaultValue) => {
+    if (!user) return defaultValue;
+    try {
+      const saved = localStorage.getItem(`gm_onboard_${user.id}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed[key] !== undefined) {
+          return parsed[key];
+        }
+      }
+    } catch (e) {
+      console.error("Error reading localStorage onboarding draft:", e);
+    }
+    return defaultValue;
+  };
+
+  const [step, setStep] = useState(() => getInitialValue('step', 1));
   const [loading, setLoading] = useState(false);
 
   // Form States
-  const [name, setName] = useState(profile?.name || '');
-  const [bio, setBio] = useState(profile?.bio || '');
+  const [name, setName] = useState(() => getInitialValue('name', profile?.name || ''));
+  const [bio, setBio] = useState(() => getInitialValue('bio', profile?.bio || ''));
   const [uniOption, setUniOption] = useState(() => {
+    const saved = getInitialValue('uniOption', null);
+    if (saved !== null) return saved;
     const val = profile?.university || '';
     if (val === 'Assuit University' || val === 'Assuit National University') {
       return val;
@@ -25,38 +44,92 @@ export default function Onboarding() {
     return val ? 'other' : 'Assuit University';
   });
   const [customUni, setCustomUni] = useState(() => {
+    const saved = getInitialValue('customUni', null);
+    if (saved !== null) return saved;
     const val = profile?.university || '';
     if (val === 'Assuit University' || val === 'Assuit National University') {
       return '';
     }
     return val;
   });
-  const [year, setYear] = useState(profile?.year || '4th');
+  const [year, setYear] = useState(() => getInitialValue('year', profile?.year || '4th'));
 
   const [roles, setRoles] = useState(() => {
+    const saved = getInitialValue('roles', null);
+    if (saved !== null) return saved;
     if (!profile?.role) return [];
     return profile.role.split(',').map(r => r.trim()).filter(Boolean);
   });
   const [frameworks, setFrameworks] = useState(() => {
+    const saved = getInitialValue('frameworks', null);
+    if (saved !== null) return saved;
     if (!profile?.framework) return [];
     return profile.framework.split(',').map(f => f.trim()).filter(Boolean);
   });
-  const [skills, setSkills] = useState(profile?.skills || []);
+  const [skills, setSkills] = useState(() => getInitialValue('skills', profile?.skills || []));
   const [skillSearch, setSkillSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const [projectIdea, setProjectIdea] = useState(profile?.project_idea || '');
-  const [searchingFor, setSearchingFor] = useState(profile?.searching_for || '');
-  const [lookingFor, setLookingFor] = useState(profile?.looking_for || 'full_team');
+  const [projectIdea, setProjectIdea] = useState(() => getInitialValue('projectIdea', profile?.project_idea || ''));
+  const [searchingFor, setSearchingFor] = useState(() => getInitialValue('searchingFor', profile?.searching_for || ''));
+  const [lookingFor, setLookingFor] = useState(() => getInitialValue('lookingFor', profile?.looking_for || 'full_team'));
   const [contactMode] = useState('match');
-  const [phone, setPhone] = useState(profile?.phone || '');
-  const [instagram, setInstagram] = useState(profile?.instagram || '');
-  const [telegram, setTelegram] = useState(profile?.telegram || '');
-  const [linkedin, setLinkedin] = useState(profile?.linkedin || '');
-  const [githubUrl, setGithubUrl] = useState(profile?.github_url || '');
+  const [phone, setPhone] = useState(() => getInitialValue('phone', profile?.phone || ''));
+  const [instagram, setInstagram] = useState(() => getInitialValue('instagram', profile?.instagram || ''));
+  const [telegram, setTelegram] = useState(() => getInitialValue('telegram', profile?.telegram || ''));
+  const [linkedin, setLinkedin] = useState(() => getInitialValue('linkedin', profile?.linkedin || ''));
+  const [githubUrl, setGithubUrl] = useState(() => getInitialValue('githubUrl', profile?.github_url || ''));
 
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || '');
+
+  // Save onboarding draft on input changes
+  useEffect(() => {
+    if (!user) return;
+    const draft = {
+      step,
+      name,
+      bio,
+      uniOption,
+      customUni,
+      year,
+      roles,
+      frameworks,
+      skills,
+      projectIdea,
+      searchingFor,
+      lookingFor,
+      phone,
+      instagram,
+      telegram,
+      linkedin,
+      githubUrl,
+    };
+    try {
+      localStorage.setItem(`gm_onboard_${user.id}`, JSON.stringify(draft));
+    } catch (e) {
+      console.error("Error saving onboarding draft:", e);
+    }
+  }, [
+    user,
+    step,
+    name,
+    bio,
+    uniOption,
+    customUni,
+    year,
+    roles,
+    frameworks,
+    skills,
+    projectIdea,
+    searchingFor,
+    lookingFor,
+    phone,
+    instagram,
+    telegram,
+    linkedin,
+    githubUrl,
+  ]);
 
   const handleToggleRole = (roleId) => {
     setRoles(prev => {
@@ -274,6 +347,9 @@ export default function Onboarding() {
       }
 
       toast.success("Profile onboarding complete!");
+      if (user?.id) {
+        localStorage.removeItem(`gm_onboard_${user.id}`);
+      }
       await refreshProfile();
       navigate('/swipe');
     } catch (err) {

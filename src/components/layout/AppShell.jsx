@@ -36,11 +36,12 @@ export default function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col pb-20 md:pb-0">
+    <div className={`min-h-screen bg-gray-950 flex flex-col ${isOnboardingPage ? 'pb-0' : 'pb-20 md:pb-0'}`}>
       {/* Desktop Navigation */}
       <TopNav
         unreadNotificationsCount={notifications.unreadCount}
         onSignOut={signOut}
+        hideNavigation={isOnboardingPage}
       />
 
       {/* Main Content Area */}
@@ -49,7 +50,9 @@ export default function AppShell() {
       </main>
 
       {/* Mobile Navigation */}
-      <BottomNav unreadNotificationsCount={notifications.unreadCount} />
+      {!isOnboardingPage && (
+        <BottomNav unreadNotificationsCount={notifications.unreadCount} />
+      )}
     </div>
   );
 }
