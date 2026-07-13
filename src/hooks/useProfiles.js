@@ -39,7 +39,7 @@ export function useProfiles(currentProfile) {
       // 2. Fetch profiles
       let query = supabase
         .from('profiles')
-        .select('id, name, bio, year, university, role, framework, skills, github_url, project_idea, searching_for, looking_for, avatar_url, contact_mode, phone, instagram, linkedin, telegram, team_id, team:teams!team_id(id, leader_id, is_full, members:profiles!team_id(id, name, avatar_url))')
+        .select('id, name, bio, year, university, department, role, framework, skills, github_url, project_idea, searching_for, looking_for, avatar_url, contact_mode, phone, instagram, linkedin, telegram, team_id, team:teams!team_id(id, leader_id, is_full, members:profiles!team_id(id, name, avatar_url))')
         .eq('is_active', true)
         .eq('onboarding_complete', true)
         .neq('looking_for', 'browsing');

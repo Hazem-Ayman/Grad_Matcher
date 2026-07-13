@@ -22,6 +22,7 @@ export default function FullProfilePopup({ profile, isOpen, onClose }) {
     name,
     university,
     year,
+    department,
     role,
     skills,
     github_url,
@@ -181,7 +182,7 @@ export default function FullProfilePopup({ profile, isOpen, onClose }) {
             <div>
               <h2 className="text-2xl font-bold text-white tracking-wide truncate">{name}</h2>
               <p className="text-xs text-indigo-400 font-semibold tracking-wider uppercase mt-0.5">
-                {university} • {year} Year
+                {university} • {year} Year {department ? `• ${department}` : ''}
               </p>
             </div>
             <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 pt-0.5">

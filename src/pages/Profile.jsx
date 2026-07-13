@@ -31,6 +31,7 @@ export default function Profile() {
     return val;
   });
   const [year, setYear] = useState(profile?.year || '4th');
+  const [department, setDepartment] = useState(profile?.department || 'CS');
   const [bio, setBio] = useState(profile?.bio || '');
 
   const [roles, setRoles] = useState(() => {
@@ -225,6 +226,7 @@ export default function Profile() {
           name: name.trim(),
           university: finalUniversity,
           year,
+          department,
           bio: bio.trim() || null,
           role: roles.join(','),
           framework: frameworks.join(',') || null,
@@ -381,6 +383,20 @@ export default function Profile() {
                 className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
               >
                 <option value="4th">4th Year</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Department</label>
+              <select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
+              >
+                <option value="CS">CS</option>
+                <option value="IT">IT</option>
+                <option value="MM">MM</option>
+                <option value="IS">IS</option>
               </select>
             </div>
 

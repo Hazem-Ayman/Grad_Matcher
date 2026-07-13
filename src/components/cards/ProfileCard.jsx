@@ -15,6 +15,7 @@ export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
     name,
     university,
     year,
+    department,
     role,
     skills,
     github_url,
@@ -101,7 +102,7 @@ export default function ProfileCard({ profile, dragX = 0, isTop = false }) {
         <div className="space-y-1">
           <h2 className="text-2xl font-bold text-white tracking-wide">{name}</h2>
           <p className="text-xs text-indigo-400 font-semibold tracking-wider uppercase">
-            {university} • {year} Year
+            {university} • {year} Year {department ? `• ${department}` : ''}
           </p>
         </div>
 

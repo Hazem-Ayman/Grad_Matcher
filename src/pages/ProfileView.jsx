@@ -133,6 +133,11 @@ export default function ProfileView() {
             <span className="text-xs px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-full font-semibold">
               🎓 Year: {profile.year}
             </span>
+            {profile.department && (
+              <span className="text-xs px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-300 rounded-full font-semibold">
+                🏫 Dept: {profile.department}
+              </span>
+            )}
             <span className="text-xs px-2.5 py-1 bg-gray-850/50 border border-indigo-500/20 text-indigo-300 rounded-full font-semibold">
               🎯 {getLookingForText(profile.looking_for)}
             </span>

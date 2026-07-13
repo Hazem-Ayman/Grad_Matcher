@@ -53,6 +53,7 @@ export default function Onboarding() {
     return val;
   });
   const [year, setYear] = useState(() => getInitialValue('year', profile?.year || '4th'));
+  const [department, setDepartment] = useState(() => getInitialValue('department', profile?.department || 'CS'));
 
   const [roles, setRoles] = useState(() => {
     const saved = getInitialValue('roles', null);
@@ -93,6 +94,7 @@ export default function Onboarding() {
       uniOption,
       customUni,
       year,
+      department,
       roles,
       frameworks,
       skills,
@@ -118,6 +120,7 @@ export default function Onboarding() {
     uniOption,
     customUni,
     year,
+    department,
     roles,
     frameworks,
     skills,
@@ -291,6 +294,7 @@ export default function Onboarding() {
         bio: bio.trim() || null,
         university: finalUni,
         year,
+        department,
         role: roles.join(','),
         framework: frameworks.join(',') || null,
         skills,
@@ -455,6 +459,20 @@ export default function Onboarding() {
                     className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
                   >
                     <option value="4th">4th Year</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Department</label>
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-2xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-all"
+                  >
+                    <option value="CS">CS</option>
+                    <option value="IT">IT</option>
+                    <option value="MM">MM</option>
+                    <option value="IS">IS</option>
                   </select>
                 </div>
               </div>
